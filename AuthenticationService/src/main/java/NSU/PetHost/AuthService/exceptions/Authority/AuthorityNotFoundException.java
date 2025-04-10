@@ -1,4 +1,4 @@
-package NSU.PetHost.AuthService.util.exceptions.Authority;
+package NSU.PetHost.AuthService.exceptions.Authority;
 
 public class AuthorityNotFoundException extends RuntimeException {
 

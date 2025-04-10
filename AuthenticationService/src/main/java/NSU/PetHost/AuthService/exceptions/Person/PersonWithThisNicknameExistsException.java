@@ -1,4 +1,4 @@
-package NSU.PetHost.AuthService.util.exceptions.Person;
+package NSU.PetHost.AuthService.exceptions.Person;
 
 public class PersonWithThisNicknameExistsException extends RuntimeException {
     public PersonWithThisNicknameExistsException(String message) {
