@@ -7,11 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -24,12 +21,12 @@ public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, name = "id")
-    private int id;
+    private long id;
 
     @Column(name = "firstname")
     @NotEmpty(message = "Name should not be empty")
     @Size(max = 100, message = "Name should be between greater 2 and lower 50 characters")
-    private String username;
+    private String firstName;
 
     @Column(name = "surname")
     @NotEmpty(message = "Surname should not be empty")
@@ -63,7 +60,7 @@ public class Person {
     @Column(name = "created_who")
     private String created_who;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE })
     @JoinTable(name = "persons_authorities",
             joinColumns = @JoinColumn(name = "person_id"),
             inverseJoinColumns = @JoinColumn(name = "authority_id"))

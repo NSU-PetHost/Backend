@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface AuthorityRepository extends JpaRepository<Authority, Integer> {
+public interface AuthorityRepository extends JpaRepository<Authority, Long> {
 
-    Optional<Authority> findByAuthorityName(String authority_name);
+    Optional<Authority> findByAuthorityName(String authorityName);
 
     Optional<Authority> findById(int id);
 

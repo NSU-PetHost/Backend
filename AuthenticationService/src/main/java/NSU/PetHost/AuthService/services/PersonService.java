@@ -4,10 +4,12 @@ import NSU.PetHost.AuthService.models.Authority;
 import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.repositories.AuthorityRepository;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
-import NSU.PetHost.AuthService.util.exceptions.Authority.AuthorityNotFoundException;
-import NSU.PetHost.AuthService.util.exceptions.Person.PersonNotFoundException;
-import NSU.PetHost.AuthService.util.exceptions.Person.PersonWithThisEmailExistsException;
-import NSU.PetHost.AuthService.util.exceptions.Person.PersonWithThisNicknameExistsException;
+import NSU.PetHost.AuthService.security.PersonDetails;
+import NSU.PetHost.AuthService.exceptions.Authority.AuthorityNotFoundException;
+import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
+import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisEmailExistsException;
+import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisNicknameExistsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,12 +32,20 @@ public class PersonService {
        }
     }
 
+    public Person getPersonById(long personId) {
+        return peopleRepository.findById(personId).orElseThrow(() ->new PersonNotFoundException("Person with id = " + personId + " not found"));
+    }
+
+//    public PersonDetails getPersonDetails(Authentication authentication) {
+//        if ()
+//    }
+
     private boolean isExistingPersonFromNickname(String nickname) {
         return peopleRepository.findByNickname(nickname).isPresent();
     }
 
     private boolean isExistingPersonFromEmail(String email) {
-        return peopleRepository.findByNickname(email).isPresent();
+        return peopleRepository.findByEmail(email).isPresent();
     }
 
     public Person addAuthorityToPerson(Person person, Authority authority) {

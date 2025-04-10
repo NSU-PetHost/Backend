@@ -1,4 +1,4 @@
-package NSU.PetHost.AuthService.dto;
+package NSU.PetHost.AuthService.dto.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -9,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AuthenticationDTO {
-
 
     @Email(message = "Email should be valid")
     @NotEmpty(message = "Email should not be empty")

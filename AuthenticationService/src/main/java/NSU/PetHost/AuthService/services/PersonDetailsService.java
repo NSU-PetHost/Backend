@@ -3,44 +3,34 @@ package NSU.PetHost.AuthService.services;
 import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
 import NSU.PetHost.AuthService.security.PersonDetails;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PersonDetailsService implements UserDetailsService {
 
     private final PeopleRepository peopleRepository;
 
-    public PersonDetailsService(PeopleRepository peopleRepository) {
-        this.peopleRepository = peopleRepository;
-    }
+    private UserDetails loadUserByNickname(String nickname) throws UsernameNotFoundException {
+        return new PersonDetails(peopleRepository.findByNickname(nickname).orElseThrow(() -> new UsernameNotFoundException("User " + nickname + " not found")));
 
-    @Override
-    public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
-        Optional<Person> person = peopleRepository.findByNickname(nickname);
-
-        if (person.isEmpty()) {
-            throw new UsernameNotFoundException("User " + nickname + " not found");
-        }
-
-        return new PersonDetails(person.get());
     }
 
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
 
-        Optional<Person> person = peopleRepository.findByEmail(email);
-
-        if (person.isEmpty()) {
-            throw new UsernameNotFoundException("User with email: " + email + " not found");
-        }
-
-        return new PersonDetails(person.get());
+        return new PersonDetails(peopleRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User with email: " + email + " not found")));
 
     }
 
+    @Override
+    public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
+        return loadUserByNickname(nickname);
+    }
 }

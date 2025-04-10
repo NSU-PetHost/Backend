@@ -1,4 +1,4 @@
-package NSU.PetHost.AuthService.util.exceptions.Person;
+package NSU.PetHost.AuthService.exceptions.Person;
 
 import lombok.Getter;
 

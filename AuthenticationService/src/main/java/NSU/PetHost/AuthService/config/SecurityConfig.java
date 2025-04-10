@@ -1,6 +1,8 @@
 package NSU.PetHost.AuthService.config;
 
 import NSU.PetHost.AuthService.services.PersonDetailsService;
+import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,18 +21,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class SecurityConfig {
 
     private final JWTFilter jwtFilter;
     private final PersonDetailsService personDetailsService;
     private final JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-
-    @Autowired
-    public SecurityConfig(JWTFilter jwtFilter, PersonDetailsService personDetailsService, JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
-        this.jwtFilter = jwtFilter;
-        this.personDetailsService = personDetailsService;
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
-    }
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
@@ -38,21 +34,9 @@ public class SecurityConfig {
         http
                 // Разрешаем доступ к странице логина, разлогирования и регистрации всем
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/admin").hasRole("ADMIN")
-                        .requestMatchers("/api/v1/main_page", "/api/v1/auth/login", "/api/v1/auth/logout", "/api/v1/auth/registration").permitAll()
+                        .requestMatchers("/api/v1/admin").hasRole("ADMIN") //TODO: заглушка. Поменять потом на права
+                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/registration", "/api/v1/auth/refresh").permitAll()
                         .anyRequest().authenticated()
-                )
-                // Настраиваем форму логина
-                .formLogin(form -> form
-                        .loginPage("/api/v1/auth/login")
-                        .loginProcessingUrl("/api/v1/process_login")
-                        .defaultSuccessUrl("/api/v1/main_page", true)
-                        .failureUrl("/api/v1/auth/login?error=true")
-                        .permitAll()
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/main_page")
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .userDetailsService(personDetailsService)
@@ -75,6 +59,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
     }
 
 }
