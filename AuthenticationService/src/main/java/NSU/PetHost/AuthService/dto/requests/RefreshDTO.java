@@ -1,5 +1,6 @@
 package NSU.PetHost.AuthService.dto.requests;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +9,7 @@ import lombok.Setter;
 @Setter
 public class RefreshDTO {
 
-    @NotEmpty
+    @NotBlank
     private String refreshToken;
 
 }

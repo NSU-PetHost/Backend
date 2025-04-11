@@ -2,6 +2,7 @@ package NSU.PetHost.AuthService.models;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -51,6 +52,9 @@ public class Person {
     @NotEmpty(message = "Email should not be empty")
     private String email;
 
+    @Column(name = "isemailverified")
+    boolean isEmailVerified;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -60,18 +64,10 @@ public class Person {
     @Column(name = "created_who")
     private String created_who;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE })
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
     @JoinTable(name = "persons_authorities",
             joinColumns = @JoinColumn(name = "person_id"),
             inverseJoinColumns = @JoinColumn(name = "authority_id"))
     private Set<Authority> authorities;
-
-    public void addAuthority(Authority authority) {
-        authorities.add(authority);
-    }
-
-    public void removeAuthority(Authority authority) {
-        authorities.remove(authority);
-    }
 
 }

@@ -1,16 +1,18 @@
 package NSU.PetHost.AuthService.services;
 
-import NSU.PetHost.AuthService.models.Authority;
-import NSU.PetHost.AuthService.models.Person;
-import NSU.PetHost.AuthService.repositories.AuthorityRepository;
-import NSU.PetHost.AuthService.repositories.PeopleRepository;
-import NSU.PetHost.AuthService.security.PersonDetails;
+import NSU.PetHost.AuthService.dto.responses.positive.CabinetResponse;
 import NSU.PetHost.AuthService.exceptions.Authority.AuthorityNotFoundException;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
 import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisEmailExistsException;
 import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisNicknameExistsException;
-import org.springframework.security.core.Authentication;
+import NSU.PetHost.AuthService.models.Authority;
+import NSU.PetHost.AuthService.models.Person;
+import NSU.PetHost.AuthService.repositories.AuthorityRepository;
+import NSU.PetHost.AuthService.repositories.PeopleRepository;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 public class PersonService {
@@ -23,47 +25,31 @@ public class PersonService {
         this.peopleRepository = peopleRepository;
     }
 
-    public void checkExistingPerson(Person person) {
-       if (isExistingPersonFromEmail(person.getEmail())) {
-           throw new PersonWithThisEmailExistsException("Person with " + person.getEmail() + " already exists");
-       }
-       if (isExistingPersonFromNickname(person.getNickname())) {
-            throw new PersonWithThisNicknameExistsException("Person with " + person.getNickname() + " already exists");
-       }
+    public CabinetResponse getCabinet(long personId) {
+
+        Person person = peopleRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "Person not found")));
+
+        return new CabinetResponse(
+                person.getFirstName(),
+                person.getSurname(),
+                person.getPatronymic(),
+                person.getEmail()
+        );
     }
 
-    public Person getPersonById(long personId) {
-        return peopleRepository.findById(personId).orElseThrow(() ->new PersonNotFoundException("Person with id = " + personId + " not found"));
-    }
-
-//    public PersonDetails getPersonDetails(Authentication authentication) {
-//        if ()
-//    }
-
-    private boolean isExistingPersonFromNickname(String nickname) {
+    public boolean isExistingPersonFromNickname(String nickname) {
         return peopleRepository.findByNickname(nickname).isPresent();
     }
 
-    private boolean isExistingPersonFromEmail(String email) {
+    public boolean isExistingPersonFromEmail(String email) {
         return peopleRepository.findByEmail(email).isPresent();
     }
 
-    public Person addAuthorityToPerson(Person person, Authority authority) {
-        person.addAuthority(authority);
-
-        // Благодаря CascadeType.PERSIST и MERGE, связь будет сохранена.
-        return peopleRepository.save(person);
-    }
-
-    public Person addAuthorityToPerson(int personID, int authorityID) {
-
-        Person person = peopleRepository.findById(personID).orElseThrow(() -> new PersonNotFoundException("Person with id = " + personID + " not found"));
-        Authority authority = authorityRepository.findById(authorityID).orElseThrow(() -> new AuthorityNotFoundException("Authority with id = " + authorityID + " not found"));
-
-        person.addAuthority(authority);
-
-        // Благодаря CascadeType.PERSIST и MERGE, связь будет сохранена.
-        return peopleRepository.save(person);
+    public void setEmailVerified(String email) {
+        Person person = peopleRepository.findByEmail(email).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "Person not found")));
+        person.setEmailVerified(true);
+        person.setUpdatedAt(LocalDateTime.now());
+        peopleRepository.save(person);
     }
 
 }

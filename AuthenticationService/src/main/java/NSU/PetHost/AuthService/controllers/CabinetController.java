@@ -16,20 +16,12 @@ public class CabinetController {
 
     private final PersonService personService;
 
-    // TODO: /auth/info/id для реализации инфы о пользователе через officeDTO
     @GetMapping("/info/{id}")
     public ResponseEntity<CabinetResponse> getCabinet(@PathVariable long id) {
 
-        Person person = personService.getPersonById(id);
-
-        return ResponseEntity.accepted()
-                .body(new CabinetResponse(
-                        person.getFirstName(),
-                        person.getSurname(),
-                        person.getPatronymic(),
-                        person.getEmail()
-                ));
-
+        return ResponseEntity
+                .ok()
+                .body(personService.getCabinet(id));
     }
 
 }
