@@ -2,10 +2,10 @@ package NSU.PetHost.AuthService.config;
 
 import NSU.PetHost.AuthService.services.PersonDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,7 +35,7 @@ public class SecurityConfig {
                 // Разрешаем доступ к странице логина, разлогирования и регистрации всем
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/v1/admin").hasRole("ADMIN") //TODO: заглушка. Поменять потом на права
-                        .requestMatchers("/api/v1/auth/login", "/api/v1/auth/registration", "/api/v1/auth/refresh").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
@@ -52,18 +52,15 @@ public class SecurityConfig {
 
     // Бин для AuthenticationManager (для проверки JWT токена авторизации)
     @Bean
+    @Scope("singleton")
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
     @Bean
+    @Scope("singleton")
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
     }
 
 }

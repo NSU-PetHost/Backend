@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class LoginService {
@@ -21,7 +23,7 @@ public class LoginService {
 
     public AuthenticationResponse login(@Valid @RequestBody AuthenticationDTO authenticationDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new PersonNotFoundException("Email or password is incorrect");
+            throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
         }
 
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -30,7 +32,7 @@ public class LoginService {
         try {
             authenticationManager.authenticate(authenticationToken);
         } catch (Exception e) {
-            throw new PersonNotFoundException("Email or password is incorrect");
+            throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
         }
 
         String accessToken = jwtUtil.generateAccessToken(authenticationToken);

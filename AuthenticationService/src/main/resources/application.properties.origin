@@ -14,5 +14,19 @@ spring.jpa.properties.hibernate.show_sql=true
 # HTTP Methods: PUT, PATCH, DELETE
 spring.mvc.hiddenmethod.filter.enabled=true
 
-#JWT
-jwt_secret=
+# JWT
+jwt_access_secret=
+jwt_refresh_secret=
+
+# MAIL
+spring.mail.username=
+spring.mail.password=
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Redis
+spring.data.redis.host=localhost
+#default port
+spring.data.redis.port=6379

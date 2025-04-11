@@ -6,6 +6,7 @@ create table if not exists Persons (
     nickname varchar(100) not null unique,
     password text not null,
     email text not null unique,
+    isEmailVerified bool not null,
     created_at timestamp not null,
     updated_at timestamp not null,
     created_who varchar(25) not null
@@ -20,4 +21,4 @@ create table if not exists persons_authorities(
     person_id int8 references persons(id),
     authority_id int references authorities(id),
     primary key (person_id, authority_id)
-)
+);

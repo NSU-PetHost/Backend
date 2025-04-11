@@ -23,12 +23,9 @@ public class RefreshController {
     @PostMapping("/refresh")
     public ResponseEntity<AuthenticationResponse> refresh(@Valid @RequestBody RefreshDTO refreshDTO, BindingResult bindingResult) {
 
-        return ResponseEntity.ok().body(refreshService.refresh(refreshDTO, bindingResult));
+        return ResponseEntity
+                .ok()
+                .body(refreshService.refresh(refreshDTO, bindingResult));
 
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<PersonErrorResponse> handle(RefreshTokenNotFound e) {
-        return ResponseEntity.badRequest().body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
     }
 }
