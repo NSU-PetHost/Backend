@@ -3,11 +3,14 @@ package NSU.PetHost.AuthService.services;
 import NSU.PetHost.AuthService.dto.requests.AuthenticationDTO;
 import NSU.PetHost.AuthService.dto.responses.positive.AuthenticationResponse;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
+import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.security.JWTUtil;
+import NSU.PetHost.AuthService.security.PersonDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +22,7 @@ import java.util.Map;
 public class LoginService {
 
     private final AuthenticationManager authenticationManager;
+    private final PersonDetailsService personDetailsService;
     private final JWTUtil jwtUtil;
 
     public AuthenticationResponse login(@Valid @RequestBody AuthenticationDTO authenticationDTO, BindingResult bindingResult) {
@@ -26,8 +30,10 @@ public class LoginService {
             throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
         }
 
+        UserDetails person =  personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
+
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(authenticationDTO.getNickname(), authenticationDTO.getPassword());
+                new UsernamePasswordAuthenticationToken(person.getUsername(), authenticationDTO.getPassword());
 
         try {
             authenticationManager.authenticate(authenticationToken);

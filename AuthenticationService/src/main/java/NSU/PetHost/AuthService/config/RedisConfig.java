@@ -1,17 +1,11 @@
 package NSU.PetHost.AuthService.config;
 
 import NSU.PetHost.AuthService.models.VerifyCode;
-import NSU.PetHost.AuthService.publishers.MessagePublisher;
-import NSU.PetHost.AuthService.services.MessagePublisherService;
-import NSU.PetHost.AuthService.services.MessageSubscriber;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 @Configuration
@@ -39,13 +33,4 @@ public class RedisConfig {
         return template;
     }
 
-    @Bean
-    public MessagePublisher redisPublisher() {
-        return new MessagePublisherService();
-    }
-
-    @Bean
-    public MessageListenerAdapter messageListener() {
-        return new MessageListenerAdapter(new MessageSubscriber());
-    }
 }
