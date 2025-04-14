@@ -61,13 +61,6 @@ public class RegistrationService {
 
         Person person = convertToPerson(registrationDTO);
 
-        if (personService.isExistingPersonFromEmail(person.getEmail())) {
-            throw new PersonWithThisEmailExistsException("Person with " + person.getEmail() + " already exists");
-        }
-        if (personService.isExistingPersonFromNickname(person.getNickname())) {
-            throw new PersonWithThisNicknameExistsException("Person with " + person.getNickname() + " already exists");
-        }
-
         registerPerson(person);
 
         return new RegistrationResponse("Registration complete");
@@ -150,15 +143,15 @@ public class RegistrationService {
     }
 
     private void enrichPersonAnonymousAuthorities(Person person) {
-        person.setAuthorities(new HashSet<>(defaultAuthorities));
+        person.getAuthorities().addAll(anonymousAuthorities);
     }
 
     private void enrichPersonDefaultAuthorities(Person person) {
-        person.setAuthorities(new HashSet<>(defaultAuthorities));
+        person.getAuthorities().addAll(defaultAuthorities);
     }
 
     private void enrichPersonAdminAuthorities(Person person) {
-        person.setAuthorities(new HashSet<>(adminAuthorities));
+        person.getAuthorities().addAll(adminAuthorities);
     }
 
     private Set<Authority> generateAnonymousAuthorities() {

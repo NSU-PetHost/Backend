@@ -1,11 +1,7 @@
 package NSU.PetHost.AuthService.services;
 
 import NSU.PetHost.AuthService.dto.responses.positive.CabinetResponse;
-import NSU.PetHost.AuthService.exceptions.Authority.AuthorityNotFoundException;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
-import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisEmailExistsException;
-import NSU.PetHost.AuthService.exceptions.Person.PersonWithThisNicknameExistsException;
-import NSU.PetHost.AuthService.models.Authority;
 import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.repositories.AuthorityRepository;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
