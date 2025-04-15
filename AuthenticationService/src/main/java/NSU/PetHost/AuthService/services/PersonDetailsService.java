@@ -18,19 +18,19 @@ public class PersonDetailsService implements UserDetailsService {
 
     private final PeopleRepository peopleRepository;
 
-    private UserDetails loadUserByNickname(String nickname) throws UsernameNotFoundException {
+    private PersonDetails loadUserByNickname(String nickname) throws UsernameNotFoundException {
         return new PersonDetails(peopleRepository.findByNickname(nickname).orElseThrow(() -> new UsernameNotFoundException("User " + nickname + " not found")));
 
     }
 
-    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
+    public PersonDetails loadUserByEmail(String email) throws UsernameNotFoundException {
 
         return new PersonDetails(peopleRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User with email: " + email + " not found")));
 
     }
 
     @Override
-    public UserDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
+    public PersonDetails loadUserByUsername(String nickname) throws UsernameNotFoundException {
         return loadUserByNickname(nickname);
     }
 }

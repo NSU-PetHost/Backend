@@ -22,7 +22,9 @@ public class RedisService implements RedisRepository {
 
     @Override
     public void add(final VerifyCode verifyCode) {
+        System.out.println("redis add method called");
         String key = KEY_PREFIX + verifyCode.getEmail();
+        System.out.println("key = " + key + ", value = " + verifyCode.getCode());
         // Сохраняем объект с TTL в 5 минут
         redisTemplate.opsForValue().set(key, verifyCode, 5, TimeUnit.MINUTES);
     }

@@ -73,10 +73,10 @@ public class JWTUtil {
         return verifier.verify(token); // тут происходит валидность JWT токена
     }
 
-    public String extractNickname(String token, JWTTypes jwtType) {
+    public String extractClaim(String token, JWTTypes jwtType, String claim) {
 
         DecodedJWT jwt = verifyJWT(token, jwtType);
-        return jwt.getClaim("nickname").asString();
+        return jwt.getClaim(claim).asString();
     }
 
 }

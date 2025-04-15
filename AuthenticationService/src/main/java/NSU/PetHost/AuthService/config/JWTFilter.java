@@ -42,7 +42,7 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         try {
-            String nickname = jwtUtil.extractNickname(jwt, JWTTypes.accessToken);
+            String nickname = jwtUtil.extractClaim(jwt, JWTTypes.accessToken, "nickname");
             UserDetails userDetails = personDetailsService.loadUserByUsername(nickname);
 
             UsernamePasswordAuthenticationToken authentication =

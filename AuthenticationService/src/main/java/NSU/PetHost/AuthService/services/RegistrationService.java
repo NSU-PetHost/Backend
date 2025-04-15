@@ -12,11 +12,13 @@ import NSU.PetHost.AuthService.repositories.AuthorityRepository;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.autoconfigure.flyway.FlywayProperties;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.HashSet;
