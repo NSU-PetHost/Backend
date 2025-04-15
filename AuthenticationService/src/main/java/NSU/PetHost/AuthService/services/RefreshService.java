@@ -21,7 +21,7 @@ public class RefreshService {
             throw new RefreshTokenNotFound("Refresh token is incorrect");
         }
 
-        String nickname = jwtUtil.extractNickname(refreshDTO.getRefreshToken(), JWTTypes.refreshToken);
+        String nickname = jwtUtil.extractClaim(refreshDTO.getRefreshToken(), JWTTypes.refreshToken, "nickname");
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(nickname, null, null);

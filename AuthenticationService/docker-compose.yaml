@@ -1,0 +1,56 @@
+version: '3.8'
+services:
+  authservice:
+    image: authservice:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/pethostauthdb
+      - SPRING_DATASOURCE_USERNAME=bel9sh
+      - SPRING_DATASOURCE_PASSWORD=1234
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - postgres
+      #        condition: service_healthy
+      - redis
+  #        condition: service_healthy
+    container_name: authService
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: pethostauthdb
+      POSTGRES_USER: bel9sh
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./src/main/resources/DB_scripts:/docker-entrypoint-initdb.d
+  #    healthcheck:
+  #      test: [ "CMD-SHELL", "pg_isready -U bel9sh -d pethostauthdb" ]
+  #      interval: 10s
+  #      timeout: 5s
+  #      retries: 5
+    container_name: psqlContainer
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "ping" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+    container_name: redisContainer
+
+volumes:
+  pgdata:
+  redisdata:

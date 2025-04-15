@@ -1,10 +1,7 @@
-package NSU.PetHost.AuthService.controllers;
+package NSU.PetHost.AuthService.handlers;
 
 import NSU.PetHost.AuthService.dto.responses.errors.PersonErrorResponse;
-import NSU.PetHost.AuthService.exceptions.Person.ConfirmEmailException;
-import NSU.PetHost.AuthService.exceptions.Person.PersonNotCreatedException;
-import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
-import NSU.PetHost.AuthService.exceptions.Person.RefreshTokenNotFound;
+import NSU.PetHost.AuthService.exceptions.Person.*;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -57,6 +54,13 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     private ResponseEntity<PersonErrorResponse> handleException(AuthorizationDeniedException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
+    }
+
+    @ExceptionHandler(CustomAccessDeniedException.class)
+    private ResponseEntity<PersonErrorResponse> handleException(CustomAccessDeniedException e) {
         return ResponseEntity
                 .badRequest()
                 .body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));

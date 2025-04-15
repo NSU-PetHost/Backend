@@ -30,10 +30,10 @@ public class LoginService {
             throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
         }
 
-        UserDetails person =  personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
+        PersonDetails personDetails =  personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
 
         UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(person.getUsername(), authenticationDTO.getPassword());
+                new UsernamePasswordAuthenticationToken(personDetails.getUsername(), authenticationDTO.getPassword());
 
         try {
             authenticationManager.authenticate(authenticationToken);
