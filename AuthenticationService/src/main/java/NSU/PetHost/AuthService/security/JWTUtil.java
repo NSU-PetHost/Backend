@@ -1,6 +1,5 @@
 package NSU.PetHost.AuthService.security;
 
-import NSU.PetHost.AuthService.models.Authority;
 import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
@@ -33,9 +32,9 @@ public class JWTUtil {
 
         return JWT.create()
                 .withSubject("Person details")
-                .withClaim("nickname", person.getNickname())
                 .withClaim("userID", person.getId())
-                .withClaim("authorities", person.getAuthorities().stream().map(Authority::getAuthorityName).toList())
+                .withClaim("nickname", person.getNickname())
+                .withClaim("role", person.getRole().getRoleName())
                 .withIssuer("spring-app")
                 .withExpiresAt(expirationDate)
                 .sign(Algorithm.HMAC256(JWTToken));
@@ -44,7 +43,7 @@ public class JWTUtil {
     public String generateAccessToken(Authentication authentication) {
         Date expirationDate = Date.from(ZonedDateTime.now().plusHours(1).toInstant());
 
-        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with \\\"\" + authentication.getName() + \"\\\" nickname not found")));
+        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with " + authentication.getName() + " nickname not found")));
 
         return generateJWT(person, expirationDate, JWTAccessSecret);
     }
@@ -52,7 +51,7 @@ public class JWTUtil {
     public String generateRefreshToken(Authentication authentication) {
         Date expirationDate = Date.from(ZonedDateTime.now().plusDays(7).toInstant());
 
-        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with \\\"\" + authentication.getName() + \"\\\" nickname not found")));
+        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with " + authentication.getName() + " nickname not found")));
 
         return generateJWT(person, expirationDate, JWTRefreshSecret);
     }

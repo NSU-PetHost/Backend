@@ -2,6 +2,7 @@ package NSU.PetHost.AuthService.handlers;
 
 import NSU.PetHost.AuthService.dto.responses.errors.PersonErrorResponse;
 import NSU.PetHost.AuthService.exceptions.Person.*;
+import NSU.PetHost.AuthService.exceptions.Roles.RoleNotFoundException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -66,5 +67,11 @@ public class GlobalExceptionHandler {
                 .body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
     }
 
+    @ExceptionHandler(RoleNotFoundException.class)
+    private ResponseEntity<PersonErrorResponse> handleException(RoleNotFoundException e) {
+        return ResponseEntity
+                .internalServerError()
+                .body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
+    }
 
 }
