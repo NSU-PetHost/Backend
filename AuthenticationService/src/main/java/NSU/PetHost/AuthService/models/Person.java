@@ -64,10 +64,10 @@ public class Person {
     @Column(name = "created_who")
     private String created_who;
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
-    @JoinTable(name = "persons_authorities",
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
+    @JoinTable(name = "persons_roles",
             joinColumns = @JoinColumn(name = "person_id"),
-            inverseJoinColumns = @JoinColumn(name = "authority_id"))
-    private Set<Authority> authorities;
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Role role;
 
 }

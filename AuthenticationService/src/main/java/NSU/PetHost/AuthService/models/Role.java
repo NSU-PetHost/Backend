@@ -2,22 +2,20 @@ package NSU.PetHost.AuthService.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "authorities")
-@NoArgsConstructor
+@Table(name = "roles")
 @Getter
-@Setter
-public class Authority {
+public class Role {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long id;
 
-    @Column(name = "authority_name")
-    private String authorityName;
+    @Column(name = "role_name")
+    private String roleName;
+
 
 }
