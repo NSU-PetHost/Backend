@@ -3,19 +3,15 @@ package NSU.PetHost.AuthService.services;
 import NSU.PetHost.AuthService.dto.requests.AuthenticationDTO;
 import NSU.PetHost.AuthService.dto.responses.positive.AuthenticationResponse;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
-import NSU.PetHost.AuthService.models.Person;
 import NSU.PetHost.AuthService.security.JWTUtil;
 import NSU.PetHost.AuthService.security.PersonDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -27,10 +23,10 @@ public class LoginService {
 
     public AuthenticationResponse login(@Valid @RequestBody AuthenticationDTO authenticationDTO, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
+            throw new PersonNotFoundException("Email or password is incorrect");
         }
 
-        PersonDetails personDetails =  personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
+        PersonDetails personDetails = personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
 
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(personDetails.getUsername(), authenticationDTO.getPassword());
@@ -38,7 +34,7 @@ public class LoginService {
         try {
             authenticationManager.authenticate(authenticationToken);
         } catch (Exception e) {
-            throw new PersonNotFoundException(Map.of("error", "Email or password is incorrect"));
+            throw new PersonNotFoundException("Email or password is incorrect");
         }
 
         String accessToken = jwtUtil.generateAccessToken(authenticationToken);

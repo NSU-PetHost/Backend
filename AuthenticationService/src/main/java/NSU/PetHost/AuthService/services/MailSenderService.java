@@ -33,4 +33,16 @@ public class MailSenderService implements EmailPublisher {
 
     }
 
+    @Override
+    public void sendNotifyEmailResetPassword(String toEmail, int verifyCode) {
+
+        mailMessage.setTo(toEmail);
+        mailMessage.setSubject("PetHost reset password");
+        mailMessage.setText("Reset password confirmation code: " + verifyCode);
+        mailMessage.setFrom(from);
+
+        mailSender.send(mailMessage);
+
+    }
+
 }

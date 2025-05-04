@@ -2,14 +2,19 @@ package NSU.PetHost.AuthService.services;
 
 import NSU.PetHost.AuthService.dto.requests.RegistrationDTO;
 import NSU.PetHost.AuthService.dto.responses.positive.CabinetResponse;
-import NSU.PetHost.AuthService.exceptions.Person.CustomAccessDeniedException;
+import NSU.PetHost.AuthService.dto.responses.positive.OkResponse;
 import NSU.PetHost.AuthService.exceptions.Person.PersonNotFoundException;
 import NSU.PetHost.AuthService.exceptions.Roles.RoleNotFoundException;
+import NSU.PetHost.AuthService.exceptions.VerifyCode.VerifyCodeException;
 import NSU.PetHost.AuthService.models.Person;
+import NSU.PetHost.AuthService.models.VerifyCode;
 import NSU.PetHost.AuthService.repositories.PeopleRepository;
 import NSU.PetHost.AuthService.repositories.RoleRepository;
 import NSU.PetHost.AuthService.security.PersonDetails;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.Authentication;
@@ -17,8 +22,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.Map;
+import java.time.OffsetDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -28,14 +32,14 @@ public class PersonService {
     private final PeopleRepository peopleRepository;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
+    private final RedisService redisService;
+    private final MailSenderService mailSenderService;
 
-    public CabinetResponse getCabinet(long personId) {
+    public CabinetResponse getCabinet() {
 
         long idFromAuth = getCurrentId();
 
-        if (personId != idFromAuth) throw new CustomAccessDeniedException("Access denied");
-
-        Person person = peopleRepository.findById(personId).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "Person not found")));
+        Person person = peopleRepository.findById(idFromAuth).orElseThrow(() -> new PersonNotFoundException("Person not found"));
 
         return new CabinetResponse(
                 person.getFirstName(),
@@ -54,9 +58,9 @@ public class PersonService {
     }
 
     public void setEmailVerified(String email) {
-        Person person = peopleRepository.findByEmail(email).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "Person not found")));
+        Person person = peopleRepository.findByEmail(email).orElseThrow(() -> new PersonNotFoundException("Person not found"));
         person.setEmailVerified(true);
-        person.setUpdatedAt(LocalDateTime.now());
+        person.setUpdatedAt(OffsetDateTime.now());
         peopleRepository.save(person);
     }
 
@@ -64,6 +68,14 @@ public class PersonService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         PersonDetails personDetails = (PersonDetails) authentication.getPrincipal();
         return personDetails.getId();
+    }
+
+    public Person getPersonByEmail(String email) {
+        return peopleRepository.findByEmail(email).orElseThrow(() -> new PersonNotFoundException("Person not found"));
+    }
+
+    public Person getPersonById(long id) {
+        return peopleRepository.findById(id).orElseThrow(() -> new PersonNotFoundException("Person not found"));
     }
 
     public Person convertToPerson(@Valid RegistrationDTO registrationDTO) {
@@ -80,8 +92,8 @@ public class PersonService {
     }
 
     private void enrichPerson(Person person) {
-        person.setCreatedAt(LocalDateTime.now());
-        person.setUpdatedAt(LocalDateTime.now());
+        person.setCreatedAt(OffsetDateTime.now());
+        person.setUpdatedAt(OffsetDateTime.now());
         person.setCreated_who("spring-app AuthService");
     }
 
@@ -97,4 +109,39 @@ public class PersonService {
         person.setRole(roleRepository.findByRoleName("ADMIN").orElseThrow(() -> new RoleNotFoundException("Admin role not found")));
     }
 
+    public OkResponse resetPassword(@Email @NotNull String email) {
+
+        Person person = getPersonByEmail(email);
+
+        VerifyCode verifyCode = new VerifyCode(email, RegistrationService.generateVerifyCode(), false); //5 min за счёт TTL Redis
+
+        redisService.addVerifyCode(verifyCode);
+
+        mailSenderService.sendNotifyEmailResetPassword(verifyCode.getEmail(), verifyCode.getCode());
+
+        return new OkResponse("Email sent");
+
+    }
+
+    public OkResponse changePassword(String email, String newPassword) {
+
+        VerifyCode verifyCode = redisService.findVerifyCode(email);
+
+        if (verifyCode == null) {
+            throw new VerifyCodeException("Verification code expired");
+        }
+
+        Person person = getPersonByEmail(email);
+
+        if (!verifyCode.isVerified()) throw new VerifyCodeException("Verification code not verified");
+
+        person.setPassword(passwordEncoder.encode(newPassword));
+
+        peopleRepository.save(person);
+
+        redisService.deleteVerifyCode(email);
+
+        return new OkResponse("Password changed successfully");
+
+    }
 }
