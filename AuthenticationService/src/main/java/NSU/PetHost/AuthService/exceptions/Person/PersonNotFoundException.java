@@ -8,10 +8,8 @@ import java.util.Map;
 @Getter
 public class PersonNotFoundException extends RuntimeException {
 
-    Map<String, Object> errors = new HashMap<>();
-
-    public PersonNotFoundException(Map<String, Object> errors) {
-        this.errors = errors;
+    public PersonNotFoundException(String message) {
+        super(message);
     }
 
 }

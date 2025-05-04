@@ -21,7 +21,7 @@ public class RedisService implements RedisRepository {
     }
 
     @Override
-    public void add(final VerifyCode verifyCode) {
+    public void addVerifyCode(final VerifyCode verifyCode) {
         System.out.println("redis add method called");
         String key = KEY_PREFIX + verifyCode.getEmail();
         System.out.println("key = " + key + ", value = " + verifyCode.getCode());
@@ -30,7 +30,7 @@ public class RedisService implements RedisRepository {
     }
 
     @Override
-    public void delete(final String email) {
+    public void deleteVerifyCode(final String email) {
         String key = KEY_PREFIX + email;
         redisTemplate.delete(key);
     }

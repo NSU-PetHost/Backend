@@ -51,12 +51,12 @@ public class RegistrationService {
         }
 
         if (!personService.isExistingPersonFromEmail(email)) {
-            throw new PersonNotFoundException(Map.of("email", "Person with " + email + " not exists"));
+            throw new PersonNotFoundException("Person with " + email + " not exists");
         }
 
-        VerifyCode verifyCode = new VerifyCode(email, generateVerifyCode(), System.currentTimeMillis() + 5 * 60 * 1000);
+        VerifyCode verifyCode = new VerifyCode(email, generateVerifyCode(), false);
 
-        redisService.add(verifyCode);
+        redisService.addVerifyCode(verifyCode);
 
         mailSenderService.sendEmail(verifyCode.getEmail(), verifyCode.getCode());
 
@@ -75,23 +75,23 @@ public class RegistrationService {
         VerifyCode verifyCode = redisService.findVerifyCode(verifyAccountDTO.getEmail());
 
         if (verifyCode == null) {
-             throw new ConfirmEmailException(Map.of("error", "Verification code not exists"));
-        }
-
-        if (verifyCode.getExpiryTime() < System.currentTimeMillis()) {
-            throw new ConfirmEmailException(Map.of("error", "Verification code expired"));
+             throw new ConfirmEmailException(Map.of("error", "Verification code expired"));
         }
 
         if (verifyCode.getCode() == verifyAccountDTO.getVerifyCode()) {
             personService.setEmailVerified(verifyAccountDTO.getEmail());
-            return new RegistrationResponse("Email verified");
         } else {
             throw new ConfirmEmailException(Map.of("error", "Verification code invalid"));
         }
 
+        verifyCode.setVerified(true);
+        redisService.addVerifyCode(verifyCode);
+
+        return new RegistrationResponse("Code verified");
+
     }
 
-    private int generateVerifyCode() {
+    public static int generateVerifyCode() {
         return (int)(Math.random() * 900000) + 100000; // in range [100000;999999]
     }
 
