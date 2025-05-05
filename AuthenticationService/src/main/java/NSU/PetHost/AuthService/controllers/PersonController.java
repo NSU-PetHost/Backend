@@ -42,7 +42,7 @@ public class PersonController {
     @Operation(
             summary = "All access. Восстановление пароля пользователя"
     )
-    public ResponseEntity<?> resetPassword(@RequestParam @Email @NotNull String email) {
+    public ResponseEntity<?> resetPassword(@RequestParam(defaultValue = "a.kardash@g.nsu.ru") @Email @NotNull String email) {
         return ResponseEntity
                 .ok()
                 .body(personService.resetPassword(email));
@@ -52,7 +52,7 @@ public class PersonController {
     @Operation(
             summary = "All access. Смена пароля пользователя"
     )
-    public ResponseEntity<?> changePassword(@RequestParam(defaultValue = "a.kardash@g.nsu.ru") @Email @NotBlank String email, @RequestParam(defaultValue = "1234")@NotBlank String password) {
+    public ResponseEntity<?> changePassword(@RequestParam(defaultValue = "a.kardash@g.nsu.ru") @Email @NotBlank String email, @RequestParam(defaultValue = "1234") @NotBlank String password) {
         return ResponseEntity
                 .ok()
                 .body(personService.changePassword(email, password));

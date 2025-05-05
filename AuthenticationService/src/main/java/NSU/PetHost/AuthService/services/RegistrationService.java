@@ -23,6 +23,7 @@ public class RegistrationService {
 
     private final PersonService personService;
     private final MailSenderService mailSenderService;
+    private final KafkaService kafkaService;
     private final RedisService redisService;
 
     public RegistrationResponse registration(@RequestBody @Valid RegistrationDTO registrationDTO, BindingResult bindingResult) {
@@ -58,7 +59,7 @@ public class RegistrationService {
 
         redisService.addVerifyCode(verifyCode);
 
-        mailSenderService.sendEmail(verifyCode.getEmail(), verifyCode.getCode());
+        kafkaService.addVerifyCodeInConfirmMailTopic(verifyCode);
 
         return new RegistrationResponse("Email sent");
     }

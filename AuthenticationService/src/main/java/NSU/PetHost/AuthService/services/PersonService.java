@@ -34,6 +34,7 @@ public class PersonService {
     private final RoleRepository roleRepository;
     private final RedisService redisService;
     private final MailSenderService mailSenderService;
+    private final KafkaService kafkaService;
 
     public CabinetResponse getCabinet() {
 
@@ -117,7 +118,7 @@ public class PersonService {
 
         redisService.addVerifyCode(verifyCode);
 
-        mailSenderService.sendNotifyEmailResetPassword(verifyCode.getEmail(), verifyCode.getCode());
+        kafkaService.addVerifyCodeInConfirmPasswordTopic(verifyCode);
 
         return new OkResponse("Email sent");
 
