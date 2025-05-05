@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/ContentService.iml" filepath="$PROJECT_DIR$/.idea/ContentService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AuthenticationService/AuthService.iml" filepath="$PROJECT_DIR$/AuthenticationService/AuthService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/PetHost-backend.iml" filepath="$PROJECT_DIR$/.idea/PetHost-backend.iml" />
     </modules>
   </component>
 </project>
