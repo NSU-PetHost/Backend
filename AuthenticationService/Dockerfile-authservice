@@ -16,11 +16,12 @@ RUN mvn clean package -DskipTests
 # Stage 2: Финальный образ для запуска приложения
 FROM openjdk:23
 
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://psqlContainer:5432/some_db \
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
     SPRING_DATASOURCE_USERNAME=some_user \
     SPRING_DATASOURCE_PASSWORD=some_password \
-    SPRING_REDIS_HOST=redisContainer \
-    SPRING_REDIS_PORT=6379
+    SPRING_REDIS_HOST=pethost-backend-redis \
+    SPRING_REDIS_PORT=6379 \
+    SPRING_KAFKA_SERVER=kafka:9092
 
 WORKDIR /src/docker-app
 # Копируем собранный jar из предыдущего stage
