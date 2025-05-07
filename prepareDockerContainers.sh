@@ -5,8 +5,8 @@ cd ../redis
 mv Dockerfile-redis Dockerfile
 cd ../kafka
 mv Dockerfile-kafka Dockerfile
-cd
-
+cd ../AuthenticationService
+mv Dockerfile-authservice Dockerfile
 cd ./src/main/resources
 mv application.properties.origin application.properties
 echo "Замените данные в ./src/main/resources/application.properties, что всё работало корректно(если не заполнено в Dockerfile самого сервиса)"
