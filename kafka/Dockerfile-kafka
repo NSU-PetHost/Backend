@@ -1,12 +1,40 @@
 FROM apache/kafka:4.0.0
 
-ENV KAFKA_NODE_ID=1 \
-    KAFKA_PROCESS_ROLES=broker,controller \
-    KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafkaContainer:9093 \
-    KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093 \
-    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT \
-    KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
-    KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafkaContainer:9092 \
-    KAFKA_LOG_DIRS=/tmp/kraft-combined-logs
+# 1) Обязательно сгенерируйте свой CLUSTER_ID один раз (можно через `kafka-storage.sh random-uuid`)
+#    и зажмите его здесь как константу. Здесь для примера:
+ENV KAFKA_CLUSTER_ID=5L6g3nShT-eMCtK--X86sw
 
+# 2) Номер ноды и роли
+ENV KAFKA_NODE_ID=1
+ENV KAFKA_PROCESS_ROLES=broker,controller
+
+# 3) Конфигурация кворума контроллеров (у нас один контроллер)
+ENV KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+
+# 4) Слушатели и их протоколы
+ENV KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+# ENV KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+ENV KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+ENV KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+
+# 5) Разрешаем автоматическое создание топиков (для внутренних: __consumer_offsets и др.)
+ENV KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+
+# 6) Путь под логи (KRaft combined logs)
+ENV KAFKA_LOG_DIRS=/var/lib/kafka/data
+
+# expose
 EXPOSE 9092 9093
+
+COPY server.properties /opt/kafka/config/kraft/server.properties
+
+# 7) Форматируем хранилище перед запуском и стартуем Kafka
+ENTRYPOINT [ "sh", "-c", "\
+    # форматируем storage (если уже отформатировано, при --ignore-formatted ошибок не будет) && \
+    /opt/kafka/bin/kafka-storage.sh format \
+      -t $KAFKA_CLUSTER_ID \
+      -c /opt/kafka/config/kraft/server.properties \
+      --ignore-formatted && \
+    # запускаем сам сервер в KRaft-режиме \
+    exec /opt/kafka/bin/kafka-server-start.sh /opt/kafka/config/kraft/server.properties \
+" ]
