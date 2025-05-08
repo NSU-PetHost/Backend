@@ -1,0 +1,28 @@
+#FROM openjdk:23
+# Stage 1: Сборка проекта с использованием Maven
+FROM maven:3.9.9 AS builder
+WORKDIR /app
+
+# Копируем pom.xml и заранее скачиваем зависимости.
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Копируем исходный код после зависимости для сохранения кэша
+COPY src ./src
+
+# Собираем проект (выключая тесты, чтобы ускорить сборку)
+RUN mvn clean package -DskipTests
+
+# Stage 2: Финальный образ для запуска приложения
+FROM openjdk:23
+
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
+    SPRING_DATASOURCE_USERNAME=some_user \
+    SPRING_DATASOURCE_PASSWORD=some_password
+
+WORKDIR /src/docker-app
+# Копируем собранный jar из предыдущего stage
+COPY --from=builder /app/target/AuthService-0.0.1-SNAPSHOT.jar .
+EXPOSE 8081
+# Запускаем приложение
+ENTRYPOINT ["java", "-jar", "AuthService-0.0.1-SNAPSHOT.jar"]
