@@ -43,7 +43,7 @@ public class JWTUtil {
     public String generateAccessToken(Authentication authentication) {
         Date expirationDate = Date.from(ZonedDateTime.now().plusHours(1).toInstant());
 
-        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with " + authentication.getName() + " nickname not found")));
+        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException("User with " + authentication.getName() + " nickname not found"));
 
         return generateJWT(person, expirationDate, JWTAccessSecret);
     }
@@ -51,7 +51,7 @@ public class JWTUtil {
     public String generateRefreshToken(Authentication authentication) {
         Date expirationDate = Date.from(ZonedDateTime.now().plusDays(7).toInstant());
 
-        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException(Map.of("error", "User with " + authentication.getName() + " nickname not found")));
+        Person person = peopleRepository.findByNickname(authentication.getName()).orElseThrow(() -> new PersonNotFoundException("User with " + authentication.getName() + " nickname not found"));
 
         return generateJWT(person, expirationDate, JWTRefreshSecret);
     }
