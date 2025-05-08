@@ -28,6 +28,8 @@ public class LoginService {
 
         PersonDetails personDetails = personDetailsService.loadUserByEmail(authenticationDTO.getEmail());
 
+        if (!personDetails.getPerson().isEmailVerified()) throw new PersonNotFoundException("Email is not verified");
+
         UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(personDetails.getUsername(), authenticationDTO.getPassword());
 

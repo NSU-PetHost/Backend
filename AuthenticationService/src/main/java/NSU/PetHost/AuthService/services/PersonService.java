@@ -33,7 +33,6 @@ public class PersonService {
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final RedisService redisService;
-    private final MailSenderService mailSenderService;
     private final KafkaService kafkaService;
 
     public CabinetResponse getCabinet() {
