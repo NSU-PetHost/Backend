@@ -2,7 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.5'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'com.google.protobuf' version '0.9.4'
+//	id 'com.google.protobuf' version '0.9.4'
 }
 ext {
 	springGrpcVersion = "0.8.0"
@@ -24,10 +24,9 @@ configurations {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 }
-
-
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
@@ -49,6 +48,7 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.modelmapper/modelmapper
 	implementation("org.modelmapper:modelmapper:3.2.3")
 	compileOnly 'javax.annotation:javax.annotation-api:1.3.2'
+	implementation("NSU.PetHost:jwt-proto:0.0.1-SNAPSHOT")
 }
 dependencyManagement {
 	imports {
@@ -56,24 +56,7 @@ dependencyManagement {
 	}
 }
 
-protobuf {
-	protoc {
-		artifact = "com.google.protobuf:protoc:3.25.3"
-	}
-	plugins {
-		grpc {
-			artifact = 'io.grpc:protoc-gen-grpc-java:1.62.2'
-		}
-	}
-	generateProtoTasks {
-		all().each { task ->
-			task.plugins {
-				grpc {}
-			}
-		}
-	}
-}
-
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.named('bootJar') {
+	archiveFileName = 'ContentService.jar' // имя итогового файла
+	dependsOn tasks.named('classes')       // генерировать после компиляции
 }

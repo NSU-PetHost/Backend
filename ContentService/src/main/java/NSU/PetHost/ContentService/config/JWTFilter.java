@@ -47,7 +47,6 @@ public class JWTFilter extends OncePerRequestFilter {
         }
 
         try {
-            String nickname = jwtUtil.extractClaim(jwt, "nickname");
             UserDetails userDetails = new PersonDetails(new PersonJWT(
                     Long.parseLong(jwtUtil.extractClaim(jwt, "id")),
                     jwtUtil.extractClaim(jwt, "nickname"),

@@ -22,7 +22,7 @@ ENV SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
 
 WORKDIR /src/docker-app
 # Копируем собранный jar из предыдущего stage
-COPY --from=builder /app/target/AuthService-0.0.1-SNAPSHOT.jar .
+COPY --from=builder /app/target/ContentService-0.0.1-SNAPSHOT.jar .
 EXPOSE 8081
 # Запускаем приложение
-ENTRYPOINT ["java", "-jar", "AuthService-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "ContentService-0.0.1-SNAPSHOT.jar"]
