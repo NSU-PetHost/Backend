@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package NSU.PetHost.proto;
+
+message JWTRequest {
+  string token = 1;
+}
+
+message JWTResponse {
+  bool correctly = 1;
+}
+
+service JWTService {
+  rpc check(JWTRequest) returns (JWTResponse);
+}
