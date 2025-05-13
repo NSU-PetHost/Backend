@@ -3,6 +3,7 @@ package NSU.PetHost.ContentService.security;
 import NSU.PetHost.proto.CheckJWT;
 import NSU.PetHost.proto.JWTServiceGrpc;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -24,7 +25,7 @@ public class JWTUtil {
         System.out.println("JWTRequest:" + request);
 
         ManagedChannel channel = ManagedChannelBuilder
-                .forAddress("pethost-backend-authservice", 8080)
+                .forAddress("pethost-backend-authservice", 9090)
                 .usePlaintext()
                 .build();
 
@@ -54,12 +55,11 @@ public class JWTUtil {
 
         // Парсим JSON
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, String> claims = mapper.readValue(decodedPayload, Map.class);
+        Map<String,Object> claims = mapper.readValue(decodedPayload, new TypeReference<>() {});
 
-        System.out.println("JWT payload claims:");
-        claims.forEach((k, v) -> System.out.println(k + ": " + v));
-
-        return claims.get(claim);
+        // 4. Достаём нужный claim и приводим к строке
+        Object raw = claims.get(claim);
+        return raw != null ? raw.toString() : null;
     }
 
 }

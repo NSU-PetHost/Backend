@@ -36,19 +36,23 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String jwt = header.substring(7);
 
+        System.out.println("JWT: " + jwt);
+
         if (jwt.isBlank()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token in Bearer header");
+            filterChain.doFilter(request, response);
             return;
         }
 
         if (!jwtUtil.checkToken(jwt)) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token in Bearer header");
+            filterChain.doFilter(request, response);
             return;
         }
 
         try {
             UserDetails userDetails = new PersonDetails(new PersonJWT(
-                    Long.parseLong(jwtUtil.extractClaim(jwt, "id")),
+                    Long.parseLong(jwtUtil.extractClaim(jwt, "userID")),
                     jwtUtil.extractClaim(jwt, "nickname"),
                     jwtUtil.extractClaim(jwt, "role")
             ));

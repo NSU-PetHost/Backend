@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
 
 @OpenAPIDefinition(
@@ -16,7 +17,8 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
                         email = "a.kardash@g.nsu.ru",
                         url = "https://github.com/Bel9shik"
                 )
-        )
+        ),
+        security = @SecurityRequirement(name = "JWT")
 )
 @SecurityScheme(
         name = "JWT",

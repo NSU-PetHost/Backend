@@ -39,7 +39,6 @@ public class SecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 //отключаем защиту от межсайтовой подделки запросов. При работе с JWT придётся отключить
                 .csrf(AbstractHttpConfigurer::disable)
-                .passwordManagement(password -> passwordEncoder())
                 //Никакая сессия у нас сервере теперь не хранится
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
