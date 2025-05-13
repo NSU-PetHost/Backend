@@ -19,9 +19,6 @@ public class JWTServiceImpl extends JWTServiceGrpc.JWTServiceImplBase {
     public void check(CheckJWT.JWTRequest request,
                       StreamObserver<CheckJWT.JWTResponse> response) {
 
-        System.out.println("Check JWT");
-        System.out.println("JWTRequest: " + request);
-
         try {
             jwtUtil.verifyJWT(request.getToken(), JWTTypes.accessToken);
             response.onNext(CheckJWT.JWTResponse

@@ -11,8 +11,9 @@ cd ../kafka
 docker build . -t pethost-kafka
 docker rm -f pethost-backend-kafka
 docker run -d --name pethost-backend-kafka -p 9092:9092 -p 9093:9093 --network pethost-net --network-alias kafka pethost-kafka
-cd ../AuthenticationService
+cd ..
 docker build . -t pethost-authservice
+docker build -f AuthenticationService/Dockerfile -t pethost-authservice .
 docker rm -f  pethost-backend-authService
 docker run -d --name pethost-backend-authService --network pethost-net -p 8080:8080 pethost-authservice:latest
 
