@@ -56,13 +56,12 @@ public class JWTUtil {
         return generateJWT(person, expirationDate, JWTRefreshSecret);
     }
 
-    private DecodedJWT verifyJWT(String token, JWTTypes jwtType) {
+    public DecodedJWT verifyJWT(String token, JWTTypes jwtType) {
 
         String secret = switch (jwtType) {
             case JWTTypes.accessToken -> JWTAccessSecret;
             case JWTTypes.refreshToken -> JWTRefreshSecret;
         };
-
 
         JWTVerifier verifier = JWT.require(Algorithm.HMAC256(secret))
                 .withSubject("Person details")
