@@ -23,12 +23,12 @@ public class CabinetController {
             summary = "Данные о пользователе",
             description = "Позволяет получить более подробную информацию о пользователе"
     )
-    @GetMapping("/info/{id}")
-    public ResponseEntity<CabinetResponse> getCabinet(@PathVariable @Parameter(description = "идентификатор пользователя", required = true) long id) {
+    @GetMapping("/info/")
+    public ResponseEntity<CabinetResponse> getCabinet() {
 
         return ResponseEntity
                 .ok()
-                .body(personService.getCabinet(id));
+                .body(personService.getCabinet());
     }
 
 }

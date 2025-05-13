@@ -33,7 +33,7 @@ public class RegistrationDTO {
 
     @NotBlank(message = "Password should not be empty")
     @Schema(description = "Пароль пользователя", example = "1234")
-    @Min(4)
+    @Size(min = 4)
     private String password;
 
     @Email(message = "Email should be valid")

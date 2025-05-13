@@ -15,6 +15,6 @@ public class VerifyCode implements Serializable {
 
     private int code;
 
-    private long expiryTime;
+    private boolean verified;
 
 }

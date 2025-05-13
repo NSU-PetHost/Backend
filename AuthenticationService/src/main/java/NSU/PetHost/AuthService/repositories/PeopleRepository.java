@@ -15,4 +15,5 @@ public interface PeopleRepository extends JpaRepository<Person, Integer> {
 
     Optional<Person> findById(long id);
 
+    long id(long id);
 }

@@ -12,7 +12,7 @@ import lombok.Data;
 public class CabinetResponse {
 
     @Schema(description = "Имя пользователя", example = "Aleksandr")
-    private String username;
+    private String firstname;
 
     @Schema(description = "Фамилия пользователя", example = "Kardash")
     private String surname;

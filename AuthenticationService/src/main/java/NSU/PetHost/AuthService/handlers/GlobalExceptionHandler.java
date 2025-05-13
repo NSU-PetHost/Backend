@@ -1,8 +1,10 @@
 package NSU.PetHost.AuthService.handlers;
 
 import NSU.PetHost.AuthService.dto.responses.errors.PersonErrorResponse;
+import NSU.PetHost.AuthService.dto.responses.errors.VerifyCodeErrorResponse;
 import NSU.PetHost.AuthService.exceptions.Person.*;
 import NSU.PetHost.AuthService.exceptions.Roles.RoleNotFoundException;
+import NSU.PetHost.AuthService.exceptions.VerifyCode.VerifyCodeException;
 import com.auth0.jwt.exceptions.SignatureVerificationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<PersonErrorResponse> handle(PersonNotFoundException e) {
-        return ResponseEntity.badRequest().body(new PersonErrorResponse(e.getErrors(), System.currentTimeMillis()));
+        return ResponseEntity.badRequest().body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
     }
 
     @ExceptionHandler
@@ -72,6 +74,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .internalServerError()
                 .body(new PersonErrorResponse(Map.of("error", e.getMessage()), System.currentTimeMillis()));
+    }
+
+    @ExceptionHandler (VerifyCodeException.class)
+    private ResponseEntity<VerifyCodeErrorResponse> handleException(VerifyCodeException e) {
+        return ResponseEntity
+                .badRequest()
+                .body(new VerifyCodeErrorResponse(e.getMessage(), System.currentTimeMillis()));
     }
 
 }

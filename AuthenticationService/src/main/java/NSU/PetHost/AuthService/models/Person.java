@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 @Entity
@@ -38,7 +39,7 @@ public class Person {
     @Size(max = 100, message = "Patronymic should be between greater 2 and lower 50 characters")
     private String patronymic;
 
-    @Column(name = "nickname")
+    @Column(name = "nickname", unique = true, nullable = false)
     @NotEmpty(message = "Nickname should not be empty")
     @Size(min = 2, max = 100, message = "Surname should be between greater 2 and lower 50 characters")
     private String nickname;
@@ -47,7 +48,7 @@ public class Person {
     @NotEmpty(message = "Password should not be empty")
     private String password;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true, nullable = false)
     @Email(message = "Email should be valid")
     @NotEmpty(message = "Email should not be empty")
     private String email;
@@ -56,18 +57,16 @@ public class Person {
     boolean isEmailVerified;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt = OffsetDateTime.now();
 
     @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private OffsetDateTime updatedAt = OffsetDateTime.now();
 
     @Column(name = "created_who")
-    private String created_who;
+    private String created_who = "spring-app AuthService";
 
-    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE})
-    @JoinTable(name = "persons_roles",
-            joinColumns = @JoinColumn(name = "person_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "role_id")
     private Role role;
 
 }
