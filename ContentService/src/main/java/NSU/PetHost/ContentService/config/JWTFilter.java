@@ -1,7 +1,6 @@
 package NSU.PetHost.ContentService.config;
 
-import NSU.PetHost.ContentService.model.PersonJWT;
-import NSU.PetHost.ContentService.security.JWTTypes;
+import NSU.PetHost.ContentService.models.PersonJWT;
 import NSU.PetHost.ContentService.security.JWTUtil;
 import NSU.PetHost.ContentService.security.PersonDetails;
 import com.auth0.jwt.exceptions.JWTVerificationException;

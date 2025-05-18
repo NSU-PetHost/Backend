@@ -1,4 +1,4 @@
-package NSU.PetHost.ContentService.model;
+package NSU.PetHost.ContentService.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

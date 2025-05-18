@@ -1,6 +1,6 @@
 package NSU.PetHost.ContentService.security;
 
-import NSU.PetHost.ContentService.model.PersonJWT;
+import NSU.PetHost.ContentService.models.PersonJWT;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,15 +9,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.Collections;
 
-@Getter
 // Класс обёртка над Person. Работает с PersonDetails, а не с Person
-public class PersonDetails implements UserDetails {
-
-    private final PersonJWT person;
-
-    public PersonDetails(PersonJWT person) {
-        this.person = person;
-    }
+public record PersonDetails(PersonJWT person) implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

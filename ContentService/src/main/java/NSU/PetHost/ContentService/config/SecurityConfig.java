@@ -32,8 +32,8 @@ public class SecurityConfig {
         http
                 // Разрешаем доступ к странице логина, разлогирования и регистрации всем
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                                .anyRequest().authenticated()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .anyRequest().authenticated()
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
