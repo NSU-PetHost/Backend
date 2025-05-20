@@ -7,6 +7,8 @@ docker run -d --name pethost-backend-contentService \
   -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
   -e SPRING_DATASOURCE_USERNAME=some_user \
   -e SPRING_DATASOURCE_PASSWORD=some_password \
+  -e SPRING_REDIS_HOST=pethost-backend-redis \
+  -e SPRING_REDIS_PORT=6379 \
   pethost-contentservice
 
 echo "ContentService запускается..."

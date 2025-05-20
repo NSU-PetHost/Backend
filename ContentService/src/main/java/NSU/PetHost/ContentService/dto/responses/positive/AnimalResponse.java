@@ -1,6 +1,6 @@
 package NSU.PetHost.ContentService.dto.responses.positive;
 
-import java.util.Date;
+import java.time.LocalDate;
 
-public record AnimalResponse(String name, Date dateOfBirth, double weight, long imageID) {
+public record AnimalResponse(long id, String name, LocalDate dateOfBirth, double weight, long imageID) {
 }

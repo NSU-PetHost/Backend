@@ -3,7 +3,7 @@ package NSU.PetHost.ContentService.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table
@@ -23,10 +23,11 @@ public class Animals {
     @Column(nullable = false, length = 50)
     private String name;
 
-    private Date dateOfBirth;
+    @Column(name = "date_of_birth")
+    private LocalDate dateOfBirth;
 
     private double weight;
 
-    @OneToOne(cascade = CascadeType.REMOVE, fetch = FetchType.EAGER)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Images image;
 }

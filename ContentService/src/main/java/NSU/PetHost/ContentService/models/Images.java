@@ -22,4 +22,7 @@ public class Images {
 
     @Column(name = "file_path", nullable = false)
     private String filePath;
+
+    @Column(nullable = false)
+    private boolean privacy = true;
 }

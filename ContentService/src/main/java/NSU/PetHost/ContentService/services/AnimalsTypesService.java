@@ -1,6 +1,6 @@
 package NSU.PetHost.ContentService.services;
 
-import NSU.PetHost.ContentService.exceptions.Animals.AnimalsTypesNotFound;
+import NSU.PetHost.ContentService.exceptions.animals.AnimalsTypesNotFound;
 import NSU.PetHost.ContentService.models.AnimalsTypes;
 import NSU.PetHost.ContentService.repositories.AnimalTypeRepository;
 import lombok.RequiredArgsConstructor;

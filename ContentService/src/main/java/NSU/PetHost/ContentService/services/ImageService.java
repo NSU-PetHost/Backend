@@ -1,8 +1,8 @@
 package NSU.PetHost.ContentService.services;
 
 import NSU.PetHost.ContentService.exceptions.AccessDeniedException;
-import NSU.PetHost.ContentService.exceptions.Images.ImageNotFoundException;
-import NSU.PetHost.ContentService.exceptions.Images.SaveImageException;
+import NSU.PetHost.ContentService.exceptions.images.ImageNotFoundException;
+import NSU.PetHost.ContentService.exceptions.images.SaveImageException;
 import NSU.PetHost.ContentService.exceptions.InternalServerException;
 import NSU.PetHost.ContentService.models.ImageResource;
 import NSU.PetHost.ContentService.models.Images;
@@ -32,7 +32,7 @@ public class ImageService {
     @Value("${upload.directory}")
     private String uploadDirectory;
 
-    public Images uploadImage(MultipartFile file) {
+    public Images uploadImage(MultipartFile file, boolean privacyImage) {
         try {
             String fileName = file.getOriginalFilename();
             String extension = fileName.substring(fileName.lastIndexOf("."));
@@ -44,6 +44,7 @@ public class ImageService {
             image.setName(fileName);
             image.setFilePath(path.toString());
             image.setOwnerID(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+            image.setPrivacy(privacyImage);
 
             imageRepository.save(image);
             return image;
@@ -58,28 +59,12 @@ public class ImageService {
     }
 
     private boolean hasPermission(Images image) {
+        if (!image.isPrivacy()) return true;
+
         PersonDetails currentUser = (PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<Images> imagesFromUser = imageRepository.getImagesByOwnerID(currentUser.getId());
 
         return imagesFromUser.contains(image);
-    }
-
-    public byte[] getImage(long imageID) {
-
-        Images image = getImageByID(imageID);
-
-        if (!hasPermission(image)) throw new AccessDeniedException("Access denied");
-
-        Path path = Paths.get(uploadDirectory, image.getFilePath());
-
-        try {
-            byte[] imageData = Files.readAllBytes(path);
-            if (imageData.length == 0) throw new ImageNotFoundException("Image not found");
-            return imageData;
-        } catch (IOException e) {
-            throw new InternalServerException("Failed to read image" + e.getMessage());
-        }
-
     }
 
     /**

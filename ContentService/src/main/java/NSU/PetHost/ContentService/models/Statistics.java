@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "statistics")
 @Data
@@ -32,5 +34,8 @@ public class Statistics {
     @Column(name = "gastrointestinal_tract", nullable = false)
     private int gastrointestinalTract = 0;
 
-    private String note;
+    private String note = null;
+
+    @Column(nullable = false)
+    private LocalDate date = LocalDate.now();
 }

@@ -3,7 +3,7 @@ package NSU.PetHost.ContentService.models;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "articles")
@@ -20,16 +20,24 @@ public class Articles {
     @Column(nullable = false)
     private String text;
 
-    @Column(nullable = false)
-    private String imageLink;
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false)
+    private Images image;
 
     @Column(nullable = false)
-    private OffsetDateTime createdAt;
+    private LocalDate createdAt = LocalDate.now();
 
     @Column(nullable = false)
     private long ownerID;
 
+    @Column(nullable = true)
+    private Long moderatorID = null;
+
     @Column(nullable = false)
-    private boolean approved = false;
+    private String status = StatusType.toDbValue(StatusType.WAITING_REVIEW);
+
+    @ManyToOne
+    @JoinColumn(nullable = true, name = "refusal_reasons", referencedColumnName = "id")
+    private RefusalReasons refusalReasons = null;
 
 }
