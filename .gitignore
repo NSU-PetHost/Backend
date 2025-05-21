@@ -1,0 +1,7 @@
+#PRIVATE DATA
+
+/postgres/Dockerfile
+
+/redis/Dockerfile
+
+/kafka/Dockerfile

@@ -31,7 +31,39 @@
 		<jwt.version>4.5.0</jwt.version>
 		<modelMapper.version>3.2.2</modelMapper.version>
 		<springDoc.version>2.8.6</springDoc.version>
+		<spring-grpc.version>0.8.0</spring-grpc.version>
 	</properties>
+
+	<repositories>
+		<!-- чтобы Maven читал snapshot-артефакты из локального репозитория -->
+		<repository>
+			<id>local-snapshots</id>
+			<url>file://${user.home}/.m2/repository</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+		<!-- и обычный центральный Maven -->
+		<repository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
+	</repositories>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.grpc</groupId>
+				<artifactId>spring-grpc-dependencies</artifactId>
+				<version>${spring-grpc.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -99,13 +131,58 @@
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${springDoc.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.grpc</groupId>
+			<artifactId>spring-grpc-spring-boot-starter</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/io.grpc/grpc-netty -->
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-netty</artifactId>
+			<version>1.72.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-protobuf</artifactId>
+			<version>1.72.0</version>
+		</dependency>
+		<dependency>
+			<groupId>io.grpc</groupId>
+			<artifactId>grpc-stub</artifactId>
+			<version>1.72.0</version>
+		</dependency>
 
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
+			<version>1.3.2</version>
+		</dependency>
 
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>4.28.2</version>
+		</dependency>
+		<dependency>
+			<groupId>NSU.PetHost</groupId>
+			<artifactId>jwt-proto</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 
 
 
 	<build>
+
 		<plugins>
 
 			<plugin>

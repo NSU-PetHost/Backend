@@ -1,8 +1,11 @@
 package NSU.PetHost.AuthService.services;
 
+import NSU.PetHost.AuthService.models.VerifyCode;
 import NSU.PetHost.AuthService.publishers.EmailPublisher;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -17,11 +20,15 @@ public class MailSenderService implements EmailPublisher {
     private final SimpleMailMessage mailMessage;
 
     @Override
-    public void sendEmail(String toEmail, int verifyCode) {
+    @KafkaListener(
+            topics = "confirmMail",
+            groupId = "app.1"
+    )
+    public void sendVerifyCodeToEmail(ConsumerRecord<Long, VerifyCode> record) {
 
-        mailMessage.setTo(toEmail);
+        mailMessage.setTo(record.value().getEmail());
         mailMessage.setSubject("PetHost confirm registration");
-        mailMessage.setText("Registration confirmation code: " + verifyCode);
+        mailMessage.setText("Registration confirmation code: " + record.value().getCode());
         mailMessage.setFrom(from);
 
         mailSender.send(mailMessage);
@@ -29,7 +36,18 @@ public class MailSenderService implements EmailPublisher {
     }
 
     @Override
-    public void sendEmail(String toEmail, String subject, String body) {
+    @KafkaListener(
+            topics = "confirmPassword",
+            groupId = "app.1"
+    )
+    public void sendNotifyEmailResetPassword(ConsumerRecord<Long, VerifyCode> record) {
+
+        mailMessage.setTo(record.value().getEmail());
+        mailMessage.setSubject("PetHost reset password");
+        mailMessage.setText("Reset password confirmation code: " + record.value().getCode());
+        mailMessage.setFrom(from);
+
+        mailSender.send(mailMessage);
 
     }
 
