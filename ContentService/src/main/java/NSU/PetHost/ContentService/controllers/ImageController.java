@@ -1,9 +1,8 @@
-package NSU.PetHost.ContentService.Controllers;
+package NSU.PetHost.ContentService.controllers;
 
 import NSU.PetHost.ContentService.models.ImageResource;
 import NSU.PetHost.ContentService.services.ImageService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

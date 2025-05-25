@@ -1,4 +1,4 @@
-package NSU.PetHost.ContentService.Controllers;
+package NSU.PetHost.ContentService.controllers;
 
 import NSU.PetHost.ContentService.dto.responses.positive.ArticleResponse;
 import NSU.PetHost.ContentService.dto.responses.positive.OkResponse;
