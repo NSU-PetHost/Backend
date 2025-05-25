@@ -1,4 +1,4 @@
-package NSU.PetHost.ContentService.Controllers;
+package NSU.PetHost.ContentService.controllers;
 
 import NSU.PetHost.ContentService.dto.responses.positive.AnimalResponse;
 import NSU.PetHost.ContentService.dto.responses.positive.AnimalsTypesResponse;
@@ -82,7 +82,7 @@ public class AnimalsController {
 
     }
 
-    @PutMapping("/updateAnimal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(path = "/updateAnimal", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<OkResponse> updateAnimal(@RequestParam(defaultValue = "1") @Min(1) long animalId,
                                                    @RequestParam(value = "name", defaultValue = "Misha", required = false) @Size(max = 50) String name,
                                                    @RequestParam(value = "dateOfBirth", required = false) LocalDate dateOfBirth,

@@ -6,8 +6,8 @@ docker run -d --name pethost-backend-psql \
     -p 5432:5432 \
     --network pethost-net \
     -v pgdata:/var/lib/postgresql/data \
-    -e POSTGRES_USER=bel9sh \
-    -e POSTGRES_PASSWORD=1234 \
+    -e POSTGRES_USER=some_user \
+    -e POSTGRES_PASSWORD=some_pass \
     pethost-postgres
 cd ../redis
 docker build . -t pethost-redis
@@ -42,9 +42,9 @@ docker rm -f  pethost-backend-authService
 docker run -d --name pethost-backend-authService \
     --network pethost-net \
     -p 8080:8080 \
-    -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/pethostauthdb \
-    -e SPRING_DATASOURCE_USERNAME=bel9sh \
-    -e SPRING_DATASOURCE_PASSWORD=1234 \
+    -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
+    -e SPRING_DATASOURCE_USERNAME=some_uder \
+    -e SPRING_DATASOURCE_PASSWORD=some_pass \
     -e SPRING_REDIS_HOST=pethost-backend-redis \
     -e SPRING_REDIS_PORT=6379 \
     -e SPRING_KAFKA_SERVER=kafka:9092 \
