@@ -1,10 +1,13 @@
 package NSU.PetHost.ContentService.services;
 
+import NSU.PetHost.ContentService.dto.responses.kafka.KafkaArticleCreated;
+import NSU.PetHost.ContentService.dto.responses.kafka.KafkaArticleUpdated;
 import NSU.PetHost.ContentService.dto.responses.positive.ArticleResponse;
 import NSU.PetHost.ContentService.dto.responses.positive.OkResponse;
 import NSU.PetHost.ContentService.exceptions.AccessDeniedException;
 import NSU.PetHost.ContentService.exceptions.articles.ArticlesNotFoundException;
 import NSU.PetHost.ContentService.models.Articles;
+import NSU.PetHost.ContentService.models.RefusalReasons;
 import NSU.PetHost.ContentService.models.StatusType;
 import NSU.PetHost.ContentService.repositories.ArticleRepository;
 import NSU.PetHost.ContentService.security.PersonDetails;
@@ -34,6 +37,7 @@ public class ArticleService {
     private final ArticleRepository articleRepository;
     private final RefusalReasonsService refusalReasonsService;
     private final ImageService imageService;
+    private final KafkaService kafkaService;
 
     public Articles getArticlesById(long id) {
         return articleRepository.findById(id).orElseThrow(() -> new ArticlesNotFoundException("Article Not Found"));
@@ -51,7 +55,14 @@ public class ArticleService {
         article.setText(text);
         article.setOwnerID(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
         article.setImage(imageService.uploadImage(image, false));
+
         articleRepository.save(article);
+
+        KafkaArticleCreated kafkaArticleCreated = new KafkaArticleCreated();
+        kafkaArticleCreated.setOwnerID(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+        kafkaArticleCreated.setStatus(StatusType.toDbValue(StatusType.WAITING_REVIEW));
+        kafkaArticleCreated.setArticleID(article.getId());
+        kafkaService.addArticleCreated(kafkaArticleCreated);
 
         return new OkResponse("Article created", System.currentTimeMillis());
     }
@@ -140,16 +151,30 @@ public class ArticleService {
 
         Articles articles = getArticlesById(articleId);
 
+        KafkaArticleUpdated kafkaArticleUpdated = new KafkaArticleUpdated();
+
         if (approved) {
             articles.setStatus(StatusType.toDbValue(StatusType.APPROVED));
+            kafkaArticleUpdated.setStatus(StatusType.toDbValue(StatusType.APPROVED));
         } else {
+            RefusalReasons refusalReasons = refusalReasonsService.getRefusalReasonsByID(refusalReasonID);
+
             articles.setStatus(StatusType.toDbValue(StatusType.REJECTED));
-            articles.setRefusalReasons(refusalReasonsService.getRefusalReasonsByID(refusalReasonID));
+            articles.setRefusalReasons(refusalReasons);
+
+            kafkaArticleUpdated.setStatus(StatusType.toDbValue(StatusType.REJECTED));
+            kafkaArticleUpdated.setRefusalReason(refusalReasons.getReason());
         }
 
-        articles.setModeratorID(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId());
+        PersonDetails personDetails = ((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+
+        articles.setModeratorID(personDetails.getId());
+        kafkaArticleUpdated.setAdministratorID(personDetails.getId());
+        kafkaArticleUpdated.setOwnerID(articles.getOwnerID());
+        kafkaArticleUpdated.setArticleID(articles.getId());
 
         articleRepository.save(articles);
+        kafkaService.addArticleUpdated(kafkaArticleUpdated);
 
         return new OkResponse("Article updated", System.currentTimeMillis());
     }
@@ -185,6 +210,7 @@ public class ArticleService {
 
     public OkResponse deleteById(@Min(1) long id) {
         articleRepository.deleteById(id);
+        imageService.deleteImageByPath(articleRepository.getArticlesById(id).getImage().getFilePath());
         return new OkResponse("Article deleted", System.currentTimeMillis());
     }
 }

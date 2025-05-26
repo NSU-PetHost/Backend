@@ -28,7 +28,6 @@ out/
 
 ### Private data ###
 /src/main/resources/application.properties
-Dockerfile
 
 ### NetBeans ###
 /nbproject/private/

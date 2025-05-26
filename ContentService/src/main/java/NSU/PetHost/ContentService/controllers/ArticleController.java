@@ -82,7 +82,7 @@ public class ArticleController {
                 .ok(articleService.updateArticle(id, title, text, image));
     }
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<OkResponse> deleteArticle(@RequestParam @Min(1) long id) {
         return  ResponseEntity
                 .ok(articleService.deleteById(id));

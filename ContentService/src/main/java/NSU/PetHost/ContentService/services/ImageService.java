@@ -1,6 +1,7 @@
 package NSU.PetHost.ContentService.services;
 
 import NSU.PetHost.ContentService.exceptions.AccessDeniedException;
+import NSU.PetHost.ContentService.exceptions.images.DeleteImageException;
 import NSU.PetHost.ContentService.exceptions.images.ImageNotFoundException;
 import NSU.PetHost.ContentService.exceptions.images.SaveImageException;
 import NSU.PetHost.ContentService.exceptions.InternalServerException;
@@ -79,7 +80,7 @@ public class ImageService {
                 .getAuthentication().getPrincipal()).getId();
 
         // если не владелец — бросаем
-        if (img.getOwnerID() != currentUserId) {
+        if (!hasPermission(img)) {
             throw new AccessDeniedException("Access denied");
         }
 
@@ -97,5 +98,21 @@ public class ImageService {
         } catch (IOException e) {
             throw new InternalServerException("Не удалось прочитать файл");
         }
+    }
+
+    public void deleteImageByPath(String path) {
+
+        // строим путь до файла
+        Path file = Paths.get(uploadDirectory).resolve(path);
+        if (!Files.exists(file)) {
+            throw new ImageNotFoundException("Файл не найден на диске");
+        }
+
+        try {
+            Files.delete(file);
+        } catch (IOException e) {
+            throw new DeleteImageException("Delete image failed");
+        }
+
     }
 }

@@ -28,3 +28,7 @@ spring.mvc.hiddenmethod.filter.enabled=true
 # Redis
 spring.data.redis.host=${SPRING_REDIS_HOST:localhost}
 spring.data.redis.port=${SPRING_REDIS_PORT:6379}
+
+# Kafka
+spring.kafka.consumer.group-id=app.1
+spring.kafka.bootstrap-servers=${SPRING_KAFKA_SERVER:localhost:9092}
