@@ -22,7 +22,7 @@ target/
 
 ### Private data ###
 /src/main/resources/application.properties
-Dockerfile
+runDockerContainers.sh
 
 ### NetBeans ###
 /nbproject/private/

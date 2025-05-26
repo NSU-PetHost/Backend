@@ -1,5 +1,7 @@
 package NSU.PetHost.AuthService.services;
 
+import NSU.PetHost.AuthService.dto.responses.kafka.KafkaArticleCreated;
+import NSU.PetHost.AuthService.dto.responses.kafka.KafkaArticleUpdated;
 import NSU.PetHost.AuthService.models.VerifyCode;
 import NSU.PetHost.AuthService.publishers.EmailPublisher;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +24,8 @@ public class MailSenderService implements EmailPublisher {
     @Override
     @KafkaListener(
             topics = "confirmMail",
-            groupId = "app.1"
+            groupId = "app.1",
+            containerFactory = "verifyCodeKafkaListenerContainerFactory"
     )
     public void sendVerifyCodeToEmail(ConsumerRecord<Long, VerifyCode> record) {
 
@@ -38,7 +41,8 @@ public class MailSenderService implements EmailPublisher {
     @Override
     @KafkaListener(
             topics = "confirmPassword",
-            groupId = "app.1"
+            groupId = "app.1",
+            containerFactory = "verifyCodeKafkaListenerContainerFactory"
     )
     public void sendNotifyEmailResetPassword(ConsumerRecord<Long, VerifyCode> record) {
 
@@ -50,5 +54,41 @@ public class MailSenderService implements EmailPublisher {
         mailSender.send(mailMessage);
 
     }
+
+    @Override
+    @KafkaListener(
+            topics = "articleCreated",
+            groupId = "app.1",
+            containerFactory = "articleCreatedKafkaListenerContainerFactory"
+    )
+    public void sendNotifyEmailArticleCreated(ConsumerRecord<Long, KafkaArticleCreated> record) {
+
+        mailMessage.setTo("a.kardash@g.nsu.ru"); //TODO: заглушка
+        mailMessage.setSubject("PetHost article created");
+        mailMessage.setText("Your article has been created. ID:" + record.value().getArticleID());
+        mailMessage.setFrom(from);
+
+        mailSender.send(mailMessage);
+
+    }
+
+    @Override
+    @KafkaListener(
+            topics = "articleUpdated",
+            groupId = "app.1",
+            containerFactory = "articleUpdatedKafkaListenerContainerFactory"
+    )
+    public void sendNotifyEmailArticleUpdated(ConsumerRecord<Long, KafkaArticleUpdated> record) {
+
+        mailMessage.setTo("a.kardash@g.nsu.ru"); //TODO: заглушка
+        mailMessage.setSubject("PetHost article status updated");
+        mailMessage.setText("Your article has been updated. ID:" + record.value().getArticleID() + ", status: " + record.value().getStatus());
+        mailMessage.setFrom(from);
+
+        mailSender.send(mailMessage);
+
+    }
+
+
 
 }
