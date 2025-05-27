@@ -51,7 +51,7 @@ public class AnimalsController {
                 .ok(animalsService.getAnimalsTypes());
     }
 
-    @PostMapping("/deleteAnimal")
+    @DeleteMapping("/deleteAnimal")
     public ResponseEntity<OkResponse> deleteAnimal(@RequestParam(defaultValue = "1") @Min(1) long animalId) {
 
         return ResponseEntity

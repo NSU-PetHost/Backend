@@ -22,8 +22,6 @@ public class JWTUtil {
                 .setToken(token)
                 .build();
 
-        System.out.println("JWTRequest:" + request);
-
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress("pethost-backend-authservice", 9090)
                 .usePlaintext()
@@ -33,7 +31,6 @@ public class JWTUtil {
 
         CheckJWT.JWTResponse response = stub.check(request);
 
-        System.out.println("JWTResponse:" + response);
         channel.shutdownNow();
 
         return response.getCorrectly();

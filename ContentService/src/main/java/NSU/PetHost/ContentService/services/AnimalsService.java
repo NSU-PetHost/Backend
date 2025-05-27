@@ -61,7 +61,7 @@ public class AnimalsService {
     }
 
     public List<AnimalResponse> getPets() {
-        return findAllAnimalsByOwnerId(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId()).stream().map(x -> new AnimalResponse(x.getId(), x.getName(), x.getDateOfBirth(), x.getWeight(), x.getImage().getId())
+        return findAllAnimalsByOwnerId(((PersonDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId()).stream().map(x -> new AnimalResponse(x.getId(), x.getAnimalsType().getName(), x.getName(), x.getDateOfBirth(), x.getWeight(), x.getImage().getId())
         ).toList();
     }
 
@@ -73,6 +73,7 @@ public class AnimalsService {
             throw new AccessDeniedException("You do not have permission to delete this animal");
         }
 
+        imageService.deleteImageByPath(animal.getImage().getFilePath());
         animalRepository.delete(animal);
         statisticsRepository.deleteByAnimal_Id(animalId);
 

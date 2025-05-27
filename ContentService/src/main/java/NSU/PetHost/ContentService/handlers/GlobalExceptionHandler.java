@@ -7,6 +7,7 @@ import NSU.PetHost.ContentService.exceptions.ValidationException;
 import NSU.PetHost.ContentService.exceptions.animals.AnimalNotFoundException;
 import NSU.PetHost.ContentService.exceptions.animals.AnimalsTypesNotFound;
 import NSU.PetHost.ContentService.exceptions.articles.ArticlesNotFoundException;
+import NSU.PetHost.ContentService.exceptions.images.DeleteImageException;
 import NSU.PetHost.ContentService.exceptions.images.ImageNotFoundException;
 import NSU.PetHost.ContentService.exceptions.images.SaveImageException;
 import NSU.PetHost.ContentService.exceptions.refusalReasons.RefusalReasonNotFoundException;
@@ -85,4 +86,10 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(Map.of("error", ex.getMessage()), System.currentTimeMillis()));
     }
 
+    @ExceptionHandler(DeleteImageException.class)
+    public ResponseEntity<ErrorResponse> InternalServerException(DeleteImageException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(new ErrorResponse(Map.of("error", ex.getMessage()), System.currentTimeMillis()));
+    }
 }

@@ -35,8 +35,6 @@ public class JWTFilter extends OncePerRequestFilter {
 
         String jwt = header.substring(7);
 
-        System.out.println("JWT: " + jwt);
-
         if (jwt.isBlank()) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid JWT token in Bearer header");
             filterChain.doFilter(request, response);
