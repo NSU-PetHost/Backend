@@ -1,0 +1,16 @@
+docker network create pethost-net
+docker build -f ContentService/Dockerfile -t pethost-contentservice .
+docker rm -f pethost-backend-contentService
+docker run -d --name pethost-backend-contentService \
+  --network pethost-net \
+  -p 8081:8081 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
+  -e SPRING_DATASOURCE_USERNAME=some_user \
+  -e SPRING_DATASOURCE_PASSWORD=some_pass \
+  -e SPRING_REDIS_HOST=pethost-backend-redis \
+  -e SPRING_REDIS_PORT=6379 \
+  -e UPLOAD_DIRECTORY=/app/uploads \
+  -v images:/app/uploads \
+  pethost-contentservice
+
+echo "ContentService запускается..."
