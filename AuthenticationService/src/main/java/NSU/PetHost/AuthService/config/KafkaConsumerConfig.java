@@ -1,5 +1,7 @@
 package NSU.PetHost.AuthService.config;
 
+import NSU.PetHost.AuthService.dto.responses.kafka.KafkaArticleCreated;
+import NSU.PetHost.AuthService.dto.responses.kafka.KafkaArticleUpdated;
 import NSU.PetHost.AuthService.models.VerifyCode;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.LongDeserializer;
@@ -26,34 +28,68 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String kafkaGroupId;
 
-    @Bean
-    public Map<String, Object> consumerConfigs() {
+    private Map<String, Object> baseConsumerProps() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, LongDeserializer.class);
-        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, kafkaGroupId);
-        // доверяем свои модели
-        props.put(JsonDeserializer.TRUSTED_PACKAGES, "NSU.PetHost.AuthService.models");
-        // если в заголовках нет type info, указываем класс по-умолчанию
-        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, VerifyCode.class);
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "NSU.PetHost.AuthService.models, NSU.PetHost.AuthService.dto.responses.kafka");
         return props;
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<Long, VerifyCode> kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<Long, VerifyCode> verifyCodeKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<Long, VerifyCode> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
+        factory.setConsumerFactory(verifyCodeConsumerFactory());
         return factory;
     }
 
     @Bean
-    public ConsumerFactory<Long, VerifyCode> consumerFactory() {
+    public ConsumerFactory<Long, VerifyCode> verifyCodeConsumerFactory() {
+        Map<String, Object> props = baseConsumerProps();
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, VerifyCode.class);
         return new DefaultKafkaConsumerFactory<>(
-                consumerConfigs(),
+                props,
                 new LongDeserializer(),
-                // этот деструктер сам возьмёт props.get(VALUE_DEFAULT_TYPE) и TRUSTED_PACKAGES
                 new JsonDeserializer<>(VerifyCode.class));
     }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<Long, KafkaArticleCreated> articleCreatedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, KafkaArticleCreated> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(articleCreatedConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<Long, KafkaArticleCreated> articleCreatedConsumerFactory() {
+        Map<String, Object> props = baseConsumerProps();
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaArticleCreated.class);
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new LongDeserializer(),
+                new JsonDeserializer<>(KafkaArticleCreated.class));
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<Long, KafkaArticleUpdated> articleUpdatedKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<Long, KafkaArticleUpdated> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(articleUpdatedConsumerFactory());
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<Long, KafkaArticleUpdated> articleUpdatedConsumerFactory() {
+        Map<String, Object> props = baseConsumerProps();
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, KafkaArticleUpdated.class);
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new LongDeserializer(),
+                new JsonDeserializer<>(KafkaArticleUpdated.class));
+    }
+
 }

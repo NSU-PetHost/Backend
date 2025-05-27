@@ -1,20 +1,20 @@
-docker network create pethost-net
+docker network create some-net
 cd ./postgres
 docker build . -t pethost-postgres
 docker rm -f pethost-backend-psql
 docker run -d --name pethost-backend-psql \
     -p 5432:5432 \
-    --network pethost-net \
+    --network some-net \
     -v pgdata:/var/lib/postgresql/data \
     -e POSTGRES_USER=some_user \
-    -e POSTGRES_PASSWORD=some_pass \
+    -e POSTGRES_PASSWORD=some_password \
     pethost-postgres
 cd ../redis
 docker build . -t pethost-redis
 docker rm -f pethost-backend-redis
 docker run -d --name pethost-backend-redis \
     -p 6379:6379 \
-    --network pethost-net \
+    --network some-net \
     -v redisdata:/data \
     pethost-redis
 cd ../kafka
@@ -23,7 +23,7 @@ docker rm -f pethost-backend-kafka
 docker run -d --name pethost-backend-kafka \
     -p 9092:9092 \
     -p 9093:9093 \
-    --network pethost-net \
+    --network some-net \
     --network-alias kafka \
     -e KAFKA_CLUSTER_ID=5L6g3nShT-eMCtK--X86sw \
     -e KAFKA_NODE_ID=1 \
@@ -43,8 +43,8 @@ docker run -d --name pethost-backend-authService \
     --network pethost-net \
     -p 8080:8080 \
     -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
-    -e SPRING_DATASOURCE_USERNAME=some_uder \
-    -e SPRING_DATASOURCE_PASSWORD=some_pass \
+    -e SPRING_DATASOURCE_USERNAME=some_user \
+    -e SPRING_DATASOURCE_PASSWORD=some_password \
     -e SPRING_REDIS_HOST=pethost-backend-redis \
     -e SPRING_REDIS_PORT=6379 \
     -e SPRING_KAFKA_SERVER=kafka:9092 \
