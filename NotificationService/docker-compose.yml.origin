@@ -1,0 +1,91 @@
+version: '3.8'
+
+networks:
+  app_network:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgresDB
+    environment:
+      POSTGRES_DB:
+      POSTGRES_USER:
+      POSTGRES_PASSWORD:
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./src/main/resources/DB_scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d notification"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app_network
+
+  zookeeper:
+    image: 'confluentinc/cp-zookeeper:7.7.0'
+    hostname: zookeeper
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - '2181:2181'
+    networks:
+      - app_network
+
+  kafka:
+    image: 'confluentinc/cp-kafka:7.7.0' # Согласуем версию с Zookeeper
+    hostname: kafka # hostname важен для разрешения имен, если не используете имя сервиса
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181' # Подключаемся к zookeeper по имени сервиса
+      KAFKA_LISTENERS: LISTENER_INTERNAL://0.0.0.0:19092,LISTENER_EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: LISTENER_INTERNAL://kafka:19092,LISTENER_EXTERNAL://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_INTERNAL:PLAINTEXT,LISTENER_EXTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_INTERNAL
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0 # Для разработки
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" # Оставляем
+    ports:
+      - '9092:9092' # Для LISTENER_EXTERNAL (доступ с хоста)
+      # - '19092:19092' # LISTENER_INTERNAL (для доступа между контейнерами) не обязательно пробрасывать на хост
+    networks:
+      - app_network
+
+
+  notification_service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notificationService
+    ports:
+      - "8080:8080" # Порт вашего Spring Boot приложения
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/notification
+      - SPRING_DATASOURCE_USERNAME=
+      - SPRING_DATASOURCE_PASSWORD=
+      # Подключение к Kafka
+      - SPRING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS=kafka:19092 # Используем INTERNAL листенер Kafka
+      - SPRING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS=kafka:19092 # Если он тоже публикует
+      - SPRING_KAFKA_CONSUMER_GROUP_ID=notification-service-group
+      # Адрес для gRPC клиента к сервису авторизации (предполагаем, что сервис авторизации на хосте)
+      - GRPC_CLIENT_AUTH_SERVICE_ADDRESS=host.docker.internal:9090
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    networks:
+      - app_network
+
+volumes:
+  pgdata:
+  kafka_data:
