@@ -12,7 +12,7 @@ import NSU.PetHost.NotificationService.core.repository.NotificationRepository;
 import NSU.PetHost.NotificationService.core.repository.NotificationScheduleRepository;
 import NSU.PetHost.NotificationService.core.repository.NotificationTemplateRepository;
 import NSU.PetHost.NotificationService.core.service.client.PersonServiceClient;
-import NSU.PetHost.NotificationService.grpc.person.PersonResponse;
+import NSU.PetHost.proto.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -62,8 +62,6 @@ public class NotificationService {
     @Transactional
     public Notification createForPerson(Long personId, NotificationRequest request) {
         log.info("Attempting to create notification for person ID: {} with request: {}", personId, request);
-        personServiceClient.getPersonById(personId)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId + " when creating notification."));
 
         NotificationTemplate template = resolveTemplateOptional(request.getNotificationTemplateId());
         NotificationSchedule schedule = resolveScheduleOptional(request.getNotificationScheduleId());
@@ -118,11 +116,6 @@ public class NotificationService {
             String categoryName,
             String sortParamsString
     ) {
-        // проверка существования пользователя
-        personServiceClient.getPersonById(personId)
-                .orElseThrow(() -> new ResourceNotFoundException("Person not found with ID: " + personId));
-        log.debug("Person {} found.", personId);
-
         Specification<Notification> spec = (root, query, cb) ->
                 cb.equal(root.get("personId"), personId);
 
@@ -298,6 +291,11 @@ public class NotificationService {
             throw new AccessDeniedException("You do not have permission to view this notification.");
         }
         return notification;
+    }
+
+    public Notification getNotificationById(Long notificationId) {
+        return notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Notification not found with id: " + notificationId));
     }
 
 

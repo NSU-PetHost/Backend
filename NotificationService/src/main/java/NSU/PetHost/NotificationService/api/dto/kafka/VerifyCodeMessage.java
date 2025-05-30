@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VerifyCodeMessage {
     private String email;
-    private String code; // Или int, если код числовой
-    // private Long personId; // если сервис авторизации может это отправлять
+    private String code;
 }

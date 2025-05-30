@@ -1,10 +1,11 @@
 syntax = "proto3";
 
 option java_multiple_files = true;
-option java_package = "NSU.PetHost.NotificationService.grpc.person";
-option java_outer_classname = "PersonServiceProto";
+option java_package = "NSU.PetHost.proto";
+option java_outer_classname = "PetHostServicesProto";
 
-package person;
+package NSU.PetHost.proto;
+
 
 service PersonService {
   rpc GetPersonById (PersonRequest) returns (PersonResponse);
@@ -17,19 +18,31 @@ message PersonEmailRequest {
 }
 
 message PersonRequest {
-  int64 personId = 1;
+  int64 personId = 1; 
 }
 
 message PersonResponse {
   int64 id = 1;
   string username = 2;
   string email = 3;
-  string first_name = 4;
-  string last_name = 5;
+  string first_name = 4; 
+  string last_name = 5;  
 }
 
 message PersonIdsResponse {
-  repeated int64 personIds = 1;
+  repeated int64 personIds = 1; 
 }
 
 message Empty {}
+
+message JWTRequest {
+  string token = 1;
+}
+
+message JWTResponse {
+  bool correctly = 1;
+}
+
+service JWTService {
+  rpc check(JWTRequest) returns (JWTResponse);
+}

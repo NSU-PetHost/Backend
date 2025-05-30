@@ -13,5 +13,5 @@ public interface NotificationScheduleRepository extends JpaRepository<Notificati
 
     List<NotificationSchedule> findByIsActiveTrueAndCronExpressionIsNotNull();
 
-    Collection<Object> findByCronExpressionIsNotNull();
+    List<NotificationSchedule> findAllByCreatedByUserId(Long createdByUserId);
 }

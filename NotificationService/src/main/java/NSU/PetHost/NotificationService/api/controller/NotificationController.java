@@ -6,6 +6,7 @@ import NSU.PetHost.NotificationService.api.dto.NotificationDto;
 import NSU.PetHost.NotificationService.api.dto.NotificationRequest;
 import NSU.PetHost.NotificationService.core.error.ResourceNotFoundException;
 import NSU.PetHost.NotificationService.core.model.Notification;
+import NSU.PetHost.NotificationService.core.security.PersonDetails;
 import NSU.PetHost.NotificationService.core.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +19,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.GrantedAuthority;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,8 +29,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.ErrorResponse;
@@ -37,13 +43,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 
-
 @RestController
 @RequestMapping("/api/v1/notification")
 @Slf4j
 @RequiredArgsConstructor
 @Tag(name = "Уведомления (Notifications)", description = "API для управления уведомлениями пользователей")
-@SecurityRequirement(name = "bearerAuth")
+@SecurityRequirement(name = "JWT")
 public class NotificationController {
     private final NotificationService notificationService;
     private final ModelMapper modelMapper;
@@ -60,23 +65,20 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован")
     })
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<NotificationDto>> getPersonNotifications(
-            @AuthenticationPrincipal Jwt jwtPrincipal,
-            @Parameter(description = "Фильтр по статусу прочтения (true/false). Если не указан, возвращаются все.", example = "false")
-            @RequestParam(required = false) Boolean isRead,
-            @Parameter(description = "Фильтр по имени категории уведомления.", example = "Новости")
-            @RequestParam(required = false) String category,
-            @Parameter(description = "Параметры сортировки. Формат: 'поле,направление' (например, 'createdAt,desc'). По умолчанию 'createdAt,asc'.", example = "createdAt,desc")
-            @RequestParam(required = false, defaultValue = "createdAt,asc") String sort
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails personDetails,
+            @Parameter(description = "Фильтр по статусу прочтения (true/false).") @RequestParam(required = false) Boolean isRead,
+            @Parameter(description = "Фильтр по имени категории уведомления.") @RequestParam(required = false) String category,
+            @Parameter(description = "Параметры сортировки. Формат: 'поле,направление'.") @RequestParam(required = false, defaultValue = "createdAt,asc") String sort
     ) {
-        Long authenticatedUserId = getAuthenticatedUserId(jwtPrincipal);
+        Long authenticatedUserId = personDetails.getId();
         log.info("Request for notifications for authenticated user ID: {}, isRead: {}, category: {}, sort: {}",
                 authenticatedUserId, isRead, category, sort);
 
         List<Notification> notifications = notificationService.getPersonNotifications(
                 authenticatedUserId, isRead, category, sort
         );
-
         return ResponseEntity.ok(
                 notifications.stream()
                         .map(this::convertToNotificationDto)
@@ -97,14 +99,20 @@ public class NotificationController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @GetMapping(value = "/{notificationId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NotificationDto> getNotificationById(
-            @Parameter(description = "ID уведомления", required = true, example = "1")
             @PathVariable Long notificationId,
-            @AuthenticationPrincipal Jwt jwtPrincipal
+            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails personDetails
     ) {
-        Long authenticatedUserId = getAuthenticatedUserId(jwtPrincipal);
-        log.info("User ID: {} requesting notification ID: {}", authenticatedUserId, notificationId);
-        Notification notification = notificationService.getNotificationDetails(notificationId, authenticatedUserId);
+        Long requesterUserId = personDetails.getId();
+        log.info("User ID: {} requesting notification ID: {}", requesterUserId, notificationId);
+
+        Notification notification = notificationService.getNotificationById(notificationId);
+
+        if (!isAdmin(authentication) && !notification.getPersonId().equals(requesterUserId)) {
+            throw new AccessDeniedException("You are not authorized to view this notification.");
+        }
         return ResponseEntity.ok(convertToNotificationDto(notification));
     }
 
@@ -120,17 +128,23 @@ public class NotificationController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PostMapping("/{notificationId}/read")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> markNotificationAsRead(
-            @AuthenticationPrincipal Jwt jwtPrincipal,
-            @Parameter(description = "ID уведомления", required = true, example = "1") @PathVariable Long notificationId
+            @PathVariable Long notificationId,
+            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails personDetails
     ) {
-        Long authenticatedUserId = getAuthenticatedUserId(jwtPrincipal);
-        log.info("User ID: {} attempting to mark notification ID: {} as read", authenticatedUserId, notificationId);
+        Long requesterUserId = personDetails.getId();
+        log.info("User ID: {} attempting to mark notification ID: {} as read", requesterUserId, notificationId);
 
-        notificationService.markAsRead(notificationId, authenticatedUserId); // Сервис кинет исключение, если что-то не так
+        Notification notification = notificationService.getNotificationById(notificationId);
+        if (!isAdmin(authentication) && !notification.getPersonId().equals(requesterUserId)) {
+            throw new AccessDeniedException("You are not authorized to mark this notification as read.");
+        }
+
+        notificationService.markAsRead(notificationId, requesterUserId);
         return ResponseEntity.ok().build();
     }
-
 
     @Operation(summary = "Создать уведомление для указанного пользователя (административная функция)",
             description = "Позволяет администратору создать уведомление для конкретного пользователя.")
@@ -144,18 +158,18 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
     })
-    // @PreAuthorize("hasRole('ROLE_ADMIN')") // Пример защиты на основе роли
     @PostMapping(value = "/user/{userId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<NotificationDto> createNotificationForSpecificUser(
-            @Parameter(description = "ID пользователя, для которого создается уведомление", required = true, example = "456")
             @PathVariable Long userId,
-            @RequestBody(description = "Данные для создания уведомления", required = true,
-                    content = @Content(schema = @Schema(implementation = NotificationRequest.class)))
-            @Valid @org.springframework.web.bind.annotation.RequestBody NotificationRequest request) {
-        log.info("Admin request to create notification for user ID: {}. Request: {}", userId, request);
+            @Valid @RequestBody NotificationRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails adminDetails
+    ) {
+        log.info("Admin ID: {} creating notification for user ID: {}. Request: {}", adminDetails.getId(), userId, request);
         Notification created = notificationService.createForPerson(userId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(convertToNotificationDto(created));
     }
+
 
     @Operation(summary = "Создать уведомление для всех пользователей (административная функция)",
             description = "Массовая рассылка уведомлений всем зарегистрированным пользователям.")
@@ -169,14 +183,12 @@ public class NotificationController {
             @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован"),
             @ApiResponse(responseCode = "403", description = "Доступ запрещен (недостаточно прав)")
     })
-    // @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping(value = "/bulk", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<List<NotificationDto>> createNotificationForAllUsers(
-            @RequestBody(description = "Данные для создания массового уведомления (например, только title и message, канал может быть общим)",
-                    required = true, content = @Content(schema = @Schema(implementation = NotificationRequest.class)))
-            @Valid  @org.springframework.web.bind.annotation.RequestBody NotificationRequest request) {
-        // Здесь может быть логика проверки прав администратора
-        log.info("Admin request to create bulk notification: {}", request);
+            @Valid @RequestBody NotificationRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails adminDetails
+    ) {
+        log.info("Admin ID: {} creating bulk notification: {}", adminDetails.getId(), request);
         List<Notification> createdNotifications = notificationService.createForAllPersons(request);
         List<NotificationDto> dtos = createdNotifications.stream()
                 .map(this::convertToNotificationDto)
@@ -184,8 +196,9 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dtos);
     }
 
-    @Operation(summary = "Обновить уведомление (административная или пользовательская функция)",
-            description = "Позволяет обновить существующее уведомление. Пользователь может обновлять только свои уведомления, если не администратор.")
+
+    @Operation(summary = "Обновить уведомление",
+            description = "Пользователь может обновлять свои уведомления, администратор - любые.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Уведомление успешно обновлено",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -200,26 +213,27 @@ public class NotificationController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @PutMapping(value = "/{notificationId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<NotificationDto> updateNotification(
-            @Parameter(description = "ID уведомления для обновления", required = true, example = "1")
             @PathVariable Long notificationId,
-            @AuthenticationPrincipal Jwt jwtPrincipal,
-            @RequestBody(description = "Данные для обновления уведомления", required = true,
-                    content = @Content(schema = @Schema(implementation = NotificationRequest.class)))
-            @Valid  @org.springframework.web.bind.annotation.RequestBody NotificationRequest updateRequest
+            @Valid @RequestBody NotificationRequest updateRequest,
+            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails personDetails
     ) {
-        Long authenticatedUserId = getAuthenticatedUserId(jwtPrincipal);
-        log.info("User ID: {} attempting to update notification ID: {}. Request: {}", authenticatedUserId, notificationId, updateRequest);
+        Long updaterUserId = personDetails.getId();
+        log.info("User ID: {} attempting to update notification ID: {}. Request: {}", updaterUserId, notificationId, updateRequest);
+
         Notification updatedNotification = notificationService.updateNotification(
                 notificationId,
-                authenticatedUserId,
+                updaterUserId,
                 updateRequest
         );
+
         return ResponseEntity.ok(convertToNotificationDto(updatedNotification));
     }
 
-    @Operation(summary = "Удалить уведомление (пользовательская функция)",
-            description = "Пользователь может удалить свое уведомление.")
+    @Operation(summary = "Удалить уведомление",
+            description = "Пользователь может удалить свое уведомление, администратор - любое.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Уведомление успешно удалено"),
             @ApiResponse(responseCode = "401", description = "Пользователь не аутентифицирован"),
@@ -229,13 +243,21 @@ public class NotificationController {
                             schema = @Schema(implementation = ErrorResponseDto.class)))
     })
     @DeleteMapping("/{notificationId}")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteNotification(
-            @Parameter(description = "ID уведомления для удаления", required = true, example = "1")
             @PathVariable Long notificationId,
-            @AuthenticationPrincipal Jwt jwtPrincipal) {
-        Long authenticatedUserId = getAuthenticatedUserId(jwtPrincipal);
-        log.info("User ID: {} attempting to delete notification ID: {}", authenticatedUserId, notificationId);
-        notificationService.deleteNotificationForPerson(notificationId, authenticatedUserId); // Сервис проверяет принадлежность
+            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(hidden = true) @AuthenticationPrincipal PersonDetails personDetails
+    ) {
+        Long deleterUserId = personDetails.getId();
+        log.info("User ID: {} attempting to delete notification ID: {}", deleterUserId, notificationId);
+
+        Notification existingNotification = notificationService.getNotificationById(notificationId);
+        if (!isAdmin(authentication) && !existingNotification.getPersonId().equals(deleterUserId)) {
+            throw new AccessDeniedException("You can only delete your own notifications.");
+        }
+
+        notificationService.deleteNotification(notificationId, deleterUserId);
         return ResponseEntity.noContent().build();
     }
 
@@ -254,18 +276,30 @@ public class NotificationController {
         return dto;
     }
 
-    private Long getAuthenticatedUserId(Jwt jwtPrincipal) {
-        if (jwtPrincipal == null || jwtPrincipal.getSubject() == null) {
-            throw new AuthenticationCredentialsNotFoundException("JWT principal or subject is missing.");
+    private Long getUserIdFromPrincipal(Object principal) {
+        if (principal instanceof PersonDetails personDetails) {
+            return personDetails.getId();
+        } else if (principal instanceof Jwt jwtPrincipal) {
+            if (jwtPrincipal.getSubject() == null) {
+                throw new IllegalStateException("User ID (subject) not found in JWT principal.");
+            }
+            try {
+                return Long.parseLong(jwtPrincipal.getSubject());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("User ID in token is not a valid number: " + jwtPrincipal.getSubject());
+            }
         }
-        try {
-            return Long.parseLong(jwtPrincipal.getSubject());
-        } catch (NumberFormatException e) {
-            log.error("Could not parse user ID from JWT subject: '{}'", jwtPrincipal.getSubject(), e);
-            throw new IllegalArgumentException("Invalid user identifier format in token.");
-        }
+        throw new IllegalStateException("Cannot extract User ID from principal of type: " + (principal != null ? principal.getClass().getName() : "null"));
     }
 
+    private boolean isAdmin(Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch("ADMIN"::equals);
+    }
 }
 //
 //@RestController

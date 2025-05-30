@@ -1,14 +1,16 @@
 package NSU.PetHost.NotificationService.core.service;
 
+import NSU.PetHost.NotificationService.api.dto.WebSocketNotificationPayload;
 import NSU.PetHost.NotificationService.core.model.Notification;
 import NSU.PetHost.NotificationService.core.model.enumerator.NotificationChannel;
 import NSU.PetHost.NotificationService.core.repository.NotificationRepository;
 import NSU.PetHost.NotificationService.core.repository.NotificationScheduleRepository;
 import NSU.PetHost.NotificationService.core.repository.NotificationTemplateRepository;
 import NSU.PetHost.NotificationService.core.service.client.PersonServiceClient;
-import NSU.PetHost.NotificationService.grpc.person.PersonResponse;
+import NSU.PetHost.proto.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,8 @@ public class NotificationCreationService {
     private final NotificationScheduleRepository scheduleRepository;
     private final EmailService emailService;
     private final PersonServiceClient personServiceClient;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     @Transactional
     public Notification createAndSendNotification(
@@ -54,25 +58,37 @@ public class NotificationCreationService {
 
     @Async("asyncNotificationExecutor")
     public void triggerActualSending(Notification notification, Long personId, String title, String message, NotificationChannel channel) {
-        // Этот метод теперь выполняется в отдельном потоке.
-        // Любые транзакции, начатые в вызывающем методе, здесь уже не будут активны.
-        // Если нужна транзакционность внутри этого метода, ее нужно открывать здесь заново (@Transactional).
-        // Но для простой отправки это обычно не нужно.
-
         log.info("Async triggerActualSending for notification ID: {} to user {}", notification.getId(), personId);
         if (channel == NotificationChannel.ON_SITE) {
-            log.info("ON_SITE notification for user {} (ID: {}) is already saved.", personId, notification.getId());
-            // для WebSocket отправки можно добавить вызов здесь
+            // Формируем payload для WebSocket
+            WebSocketNotificationPayload wsPayload = new WebSocketNotificationPayload(
+                    notification.getId(),
+                    title,
+                    message,
+                    channel.name(),
+                    notification.getCreatedAt(),
+                    notification.isRead()
+            );
+
+            // Определяем "пользовательский" топик. Клиент должен быть подписан на /user/queue/notifications
+            String userDestination = "/user/" + personId.toString() + "/queue/notifications";
+
+            try {
+                messagingTemplate.convertAndSend(userDestination, wsPayload);
+                log.info("ON_SITE notification (ID: {}) sent via WebSocket to user {} at destination: {}",
+                        notification.getId(), personId, userDestination);
+            } catch (Exception e) {
+                log.error("Failed to send WebSocket notification for ID {} to user {}: {}",
+                        notification.getId(), personId, e.getMessage(), e);
+            }
         } else if (channel == NotificationChannel.EMAIL) {
             log.info("Attempting to send EMAIL to user {}: {}", personId, title);
-            // ищем пользователя. Это может быть gRPC вызов, который занимает время.
             personServiceClient.getPersonById(personId).ifPresentOrElse(user -> {
                 user.getEmail();
                 if (!user.getEmail().isEmpty()) {
                     boolean success = emailService.sendEmail(user.getEmail(), title, message);
                     if (!success) {
                         log.warn("Email sending failed for notification ID: {}", notification.getId());
-                        // TODO: Возможно, обновить статус Notification в БД (потребует новой транзакции)
                     }
                 } else {
                     log.warn("Cannot send email to user {}: email is missing for notification ID: {}", personId, notification.getId());

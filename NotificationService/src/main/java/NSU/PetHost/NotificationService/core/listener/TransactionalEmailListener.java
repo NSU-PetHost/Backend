@@ -3,7 +3,7 @@ package NSU.PetHost.NotificationService.core.listener;
 import NSU.PetHost.NotificationService.api.dto.kafka.VerifyCodeMessage;
 import NSU.PetHost.NotificationService.core.service.EmailService;
 import NSU.PetHost.NotificationService.core.service.client.PersonServiceClient;
-import NSU.PetHost.NotificationService.grpc.person.*;
+import NSU.PetHost.proto.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;

@@ -1,9 +1,9 @@
 package NSU.PetHost.NotificationService.core.service.client;
 
-import NSU.PetHost.NotificationService.grpc.person.*;
+import NSU.PetHost.proto.*;
+import NSU.PetHost.proto.PersonResponse;
+import NSU.PetHost.proto.PersonServiceGrpc;
 
-
-import NSU.PetHost.NotificationService.grpc.person.PersonServiceGrpc;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;

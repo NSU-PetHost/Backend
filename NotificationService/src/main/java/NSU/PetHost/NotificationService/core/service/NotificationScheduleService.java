@@ -2,7 +2,7 @@ package NSU.PetHost.NotificationService.core.service;
 
 import NSU.PetHost.NotificationService.api.dto.NotificationScheduleRequest;
 import NSU.PetHost.NotificationService.api.dto.NotificationScheduleResponse;
-import NSU.PetHost.NotificationService.api.dto.NotificationTemplateDTO;
+import NSU.PetHost.NotificationService.api.dto.NotificationTemplateDto;
 import NSU.PetHost.NotificationService.core.model.NotificationSchedule;
 import NSU.PetHost.NotificationService.core.model.NotificationTemplate;
 import NSU.PetHost.NotificationService.core.error.InvalidRequestArgumentException;
@@ -63,7 +63,7 @@ public class NotificationScheduleService {
         } else {
              scheduleEntity.setCreatedByUserId(requestDto.getCreatedByUserId());
         }
-        scheduleEntity.setActive(requestDto.isActive());
+        scheduleEntity.setActive(requestDto.getIsActive());
         // lastTriggeredAtByScheduler будет null при создании
 
         NotificationSchedule savedSchedule = scheduleRepository.save(scheduleEntity);
@@ -126,7 +126,7 @@ public class NotificationScheduleService {
         NotificationScheduleResponse scheduleDto = modelMapper.map(schedule, NotificationScheduleResponse.class);
 
         if (schedule.getNotificationTemplate() != null) {
-            NotificationTemplateDTO templateDto = modelMapper.map(schedule.getNotificationTemplate(), NotificationTemplateDTO.class);
+            NotificationTemplateDto templateDto = modelMapper.map(schedule.getNotificationTemplate(), NotificationTemplateDto.class);
             if (schedule.getNotificationTemplate().getEventCategory() != null) {
                 templateDto.setEventCategoryId(schedule.getNotificationTemplate().getEventCategory().getId());
             }
@@ -138,4 +138,9 @@ public class NotificationScheduleService {
         return scheduleDto;
     }
 
+    public List<NotificationScheduleResponse> getSchedulesForPerson(Long requesterUserId) {
+        return scheduleRepository.findAllByCreatedByUserId(requesterUserId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
 }

@@ -33,6 +33,14 @@ public class GlobalExceptionHandler {
         log.warn("Validation error for path {}: {}", request.getRequestURI(), details);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(ForbiddenAccessException.class)
+    public ResponseEntity<ErrorResponseDto> handleForbiddenAccessException(
+            ForbiddenAccessException ex, HttpServletRequest request) {
+        ErrorResponseDto errorResponse = new ErrorResponseDto(LocalDateTime.now(), HttpStatus.FORBIDDEN.value(),
+                "Forbidden", ex.getMessage(), request.getRequestURI(), null);
+        log.warn("Forbidden access for path {}: {}", request.getRequestURI(), ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleResourceNotFoundException(
