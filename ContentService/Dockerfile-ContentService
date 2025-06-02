@@ -1,0 +1,36 @@
+# Stage 0: Сборка jwt-proto
+FROM gradle:8.7-jdk21 AS jwt_proto_builder
+WORKDIR /jwt-proto
+COPY jwt-proto /jwt-proto
+RUN ./gradlew clean build publishToMavenLocal
+
+# Stage 1: Сборка ContentService
+FROM gradle:8.7-jdk21 AS builder
+WORKDIR /app
+COPY ContentService/gradle ./gradle
+COPY ContentService/gradlew .
+COPY ContentService/settings.gradle .
+COPY ContentService/build.gradle .
+COPY ContentService/src ./src
+
+COPY --from=jwt_proto_builder /root/.m2 /root/.m2
+
+RUN ./gradlew clean bootJar -x test
+
+# Stage 2: Финальный образ с OpenJDK
+FROM openjdk:23
+
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/some_db \
+    SPRING_DATASOURCE_USERNAME=some_name \
+    SPRING_DATASOURCE_PASSWORD=some_password
+
+# Рабочая директория в контейнере
+WORKDIR /app
+
+# Копируем собранный JAR-файл из builder
+COPY --from=builder /app/build/libs/*.jar ContentService.jar
+
+EXPOSE 8081
+
+# Запуск Spring Boot приложения
+ENTRYPOINT ["java", "-jar", "ContentService.jar"]

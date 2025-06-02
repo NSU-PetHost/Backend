@@ -1,0 +1,42 @@
+# Spring
+spring.application.name=AuthService
+server.port=8080
+
+# Data Source
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.datasource.url=${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/some_db}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME:some_name}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD:some_password}
+
+# Hibernate
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.show_sql=true
+spring.jpa.hibernate.ddl-auto=create
+# create | update | validate | create-drop
+spring.jpa.properties.hibernate.jdbc.batch_size=200
+spring.jpa.properties.hibernate.order_inserts=true
+spring.jpa.properties.hibernate.order_updates=true
+
+# HTTP Methods: PUT, PATCH, DELETE
+spring.mvc.hiddenmethod.filter.enabled=true
+
+# JWT
+jwt_access_secret=jwt.access.key
+jwt_refresh_secret=jwt.refresh.key
+
+# MAIL
+# pass - PetHostBackend
+spring.mail.username=some_mail
+spring.mail.password=some_password
+spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+
+# Redis
+spring.data.redis.host=${SPRING_REDIS_HOST:localhost}
+spring.data.redis.port=${SPRING_REDIS_PORT:6379}
+
+# Kafka
+spring.kafka.consumer.group-id=app.1
+spring.kafka.bootstrap-servers=${SPRING_KAFKA_SERVER:localhost:9092}

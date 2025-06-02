@@ -1,0 +1,53 @@
+docker network create pethost-net
+cd ./postgres
+docker build . -t pethost-postgres
+docker rm -f pethost-backend-psql
+docker run -d --name pethost-backend-psql \
+    -p 5432:5432 \
+    --network pethost-net \
+    -v pgdata:/var/lib/postgresql/data \
+    -e POSTGRES_USER=bel9sh \
+    -e POSTGRES_PASSWORD=1234 \
+    pethost-postgres
+cd ../redis
+docker build . -t pethost-redis
+docker rm -f pethost-backend-redis
+docker run -d --name pethost-backend-redis \
+    -p 6379:6379 \
+    --network pethost-net \
+    -v redisdata:/data \
+    pethost-redis
+cd ../kafka
+docker build . -t pethost-kafka
+docker rm -f pethost-backend-kafka
+docker run -d --name pethost-backend-kafka \
+    -p 9092:9092 \
+    -p 9093:9093 \
+    --network pethost-net \
+    --network-alias kafka \
+    -e KAFKA_CLUSTER_ID=5L6g3nShT-eMCtK--X86sw \
+    -e KAFKA_NODE_ID=1 \
+    -e KAFKA_PROCESS_ROLES=broker,controller \
+    -e KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093 \
+    -e KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093 \
+    -e KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT \
+    -e KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER \
+    -e KAFKA_AUTO_CREATE_TOPICS_ENABLE=true \
+    -e KAFKA_LOG_DIRS=/var/lib/kafka/data \
+    pethost-kafka
+cd ..
+docker build . -t pethost-authservice
+docker build -f AuthenticationService/Dockerfile -t pethost-authservice .
+docker rm -f  pethost-backend-authService
+docker run -d --name pethost-backend-authService \
+    --network pethost-net \
+    -p 8080:8080 \
+    -e SPRING_DATASOURCE_URL=jdbc:postgresql://pethost-backend-psql:5432/pethostauthdb \
+    -e SPRING_DATASOURCE_USERNAME=bel9sh \
+    -e SPRING_DATASOURCE_PASSWORD=1234 \
+    -e SPRING_REDIS_HOST=pethost-backend-redis \
+    -e SPRING_REDIS_PORT=6379 \
+    -e SPRING_KAFKA_SERVER=kafka:9092 \
+    pethost-authservice:latest
+
+echo "Контейнеры запускаются..."
