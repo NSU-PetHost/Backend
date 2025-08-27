@@ -1,7 +1,9 @@
 package NSU.PetHost.ContentService.models;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -25,4 +27,5 @@ public class Images {
 
     @Column(nullable = false)
     private boolean privacy = true;
+
 }
